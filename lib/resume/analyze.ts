@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto'
 import { AiRequestError, activeModel, isAiConfigured, resolveProvider } from '@/lib/ai/client'
-import { cacheTtlMs, type ProviderConfig } from '@/lib/ai/config'
+import { type ProviderConfig } from '@/lib/ai/config'
 import { checkSharedLimit } from '@/lib/security/rate-limit'
 import { requestResumeReview } from '@/lib/ai/review'
+import { readAnalysis, writeAnalysis } from './analysis-cache'
 import { buildAtsReport } from './ats'
 import {
   addsUnsupportedNumber,
@@ -13,32 +14,11 @@ import {
 } from './match'
 import type { Analysis, AtsReport, BulletRewrite, Finding, PhrasingGap, Requirement } from './types'
 
-const CACHE_LIMIT = 40
-const cache = new Map<string, { expiresAt: number; analysis: Analysis }>()
-
 function cacheKey(resume: string, jobDescription: string) {
   const provider = resolveProvider()
   return createHash('sha256')
     .update(`${provider?.name}:${provider?.model}:${resume}:${jobDescription}`)
     .digest('hex')
-}
-
-function readCache(key: string) {
-  const hit = cache.get(key)
-  if (!hit) return null
-  if (hit.expiresAt <= Date.now()) {
-    cache.delete(key)
-    return null
-  }
-  return hit.analysis
-}
-
-function writeCache(key: string, analysis: Analysis) {
-  if (cache.size >= CACHE_LIMIT) {
-    const oldest = cache.keys().next().value
-    if (oldest) cache.delete(oldest)
-  }
-  cache.set(key, { expiresAt: Date.now() + cacheTtlMs(), analysis })
 }
 
 function slug(value: string) {
@@ -180,7 +160,7 @@ export async function buildAnalysis(resume: string, jobDescription: string): Pro
   if (!isAiConfigured()) return keywordAnalysis(resume, jobDescription, ats, null)
 
   const key = cacheKey(resume, jobDescription)
-  const cached = readCache(key)
+  const cached = await readAnalysis(key)
   if (cached) return cached
 
   const provider = resolveProvider()
@@ -195,7 +175,7 @@ export async function buildAnalysis(resume: string, jobDescription: string): Pro
 
   try {
     const analysis = await aiAnalysis(resume, jobDescription, ats)
-    writeCache(key, analysis)
+    await writeAnalysis(key, analysis)
     return analysis
   } catch (error) {
     const detail =

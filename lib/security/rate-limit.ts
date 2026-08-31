@@ -1,3 +1,5 @@
+import { redisConfig, redisPipeline, type RedisConfig } from './redis'
+
 export type RateLimitResult = {
   allowed: boolean
   limit: number
@@ -19,12 +21,6 @@ function clientId(request: Request) {
     request.headers.get('x-real-ip') ||
     'anonymous'
   )
-}
-
-function redisConfig() {
-  const url = process.env.UPSTASH_REDIS_REST_URL?.trim()
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
-  return url && token ? { url, token } : null
 }
 
 function sweep(now: number) {
@@ -57,23 +53,15 @@ async function inRedis(
   key: string,
   limit: number,
   windowMs: number,
-  config: { url: string; token: string },
+  config: RedisConfig,
 ): Promise<RateLimitResult> {
   const seconds = Math.ceil(windowMs / 1000)
-  const response = await fetch(`${config.url}/pipeline`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${config.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify([
-      ['INCR', key],
-      ['EXPIRE', key, String(seconds), 'NX'],
-      ['TTL', key],
-    ]),
-    signal: AbortSignal.timeout(2_000),
-  })
+  const payload = await redisPipeline(config, [
+    ['INCR', key],
+    ['EXPIRE', key, String(seconds), 'NX'],
+    ['TTL', key],
+  ])
 
-  if (!response.ok) throw new Error(`rate limit store returned ${response.status}`)
-
-  const payload = (await response.json()) as Array<{ result?: unknown; error?: string }>
   const count = Number(payload[0]?.result ?? 0)
   const ttl = Number(payload[2]?.result ?? seconds)
   if (!Number.isFinite(count) || count <= 0) throw new Error('rate limit store returned no count')

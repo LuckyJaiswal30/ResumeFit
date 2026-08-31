@@ -328,3 +328,52 @@ describe('shared model allowance', () => {
     assert.deepEqual(repeat, first)
   })
 })
+
+describe('caching through the shared store', () => {
+  it('answers a repeat from the store instead of calling the model again', async () => {
+    process.env.UPSTASH_REDIS_REST_URL = 'https://store.example'
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'token'
+    process.env.GEMINI_MODEL = `store-${(variant += 1)}`
+
+    const store = new Map<string, string>()
+    let modelCalls = 0
+
+    globalThis.fetch = (async (url: string, init: { body: string }) => {
+      if (String(url).startsWith('https://store.example')) {
+        const [command] = JSON.parse(init.body) as string[][]
+        if (command[0] === 'SET') {
+          store.set(command[1], command[2])
+          return new Response(JSON.stringify([{ result: 'OK' }]), { status: 200 })
+        }
+        if (command[0] === 'GET') {
+          return new Response(JSON.stringify([{ result: store.get(command[1]) ?? null }]), {
+            status: 200,
+          })
+        }
+        return new Response(JSON.stringify([{ result: 1 }]), { status: 200 })
+      }
+
+      modelCalls += 1
+      return new Response(
+        JSON.stringify({
+          candidates: [
+            { finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(REVIEW) }] } },
+          ],
+        }),
+        { status: 200 },
+      )
+    }) as unknown as typeof fetch
+
+    const posting = uniquePosting()
+    const first = await buildAnalysis(RESUME, posting)
+    const repeat = await buildAnalysis(RESUME, posting)
+
+    assert.equal(first.source, 'ai')
+    assert.equal(modelCalls, 1)
+    assert.deepEqual(repeat, first)
+    assert.equal(store.size, 1)
+
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+  })
+})
