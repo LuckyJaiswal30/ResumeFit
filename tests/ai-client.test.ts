@@ -132,6 +132,15 @@ describe('gemini', () => {
     assert.equal(calls.length, 2)
   })
 
+  it('gives up immediately when the provider is rate limiting', async () => {
+    stub(() => ({ status: 429, json: {} }))
+    await assert.rejects(
+      () => generateJson({ prompt: 'p', schema, validator }),
+      /rate limiting/,
+    )
+    assert.equal(calls.length, 1)
+  })
+
   it('rejects a response that does not match the schema', async () => {
     stub(() => ({ status: 200, json: geminiReply('{"wrong":1}') }))
     await assert.rejects(() => generateJson({ prompt: 'p', schema, validator }))

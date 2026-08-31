@@ -26,7 +26,7 @@ const DEFAULTS: Record<ProviderName, Defaults> = {
     promptChars: 16_000,
     completionTokens: 4500,
     budgetPerMinute: 10,
-    budgetPerDay: 800,
+    budgetPerDay: 400,
   },
   groq: {
     model: 'openai/gpt-oss-20b',

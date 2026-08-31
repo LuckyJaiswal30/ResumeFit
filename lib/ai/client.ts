@@ -87,7 +87,7 @@ function stripCodeFence(text: string) {
 }
 
 function isRetryable(status: number) {
-  return status === 400 || status === 408 || status === 429 || status >= 500
+  return status === 400 || status === 408 || status >= 500
 }
 
 function request(provider: ProviderConfig, prompt: string, schema: JsonSchema, timeoutMs: number) {
