@@ -99,7 +99,10 @@ const uniquePosting = () => `${POSTING}\n[case ${(variant += 1)}]`
 
 beforeEach(() => {
   process.env.GEMINI_API_KEY = 'test-key'
+  process.env.AI_BUDGET_PER_MINUTE = '1000'
+  process.env.AI_BUDGET_PER_DAY = '100000'
   delete process.env.AI_PROVIDER
+  delete process.env.GEMINI_MODEL
 })
 
 afterEach(() => {
@@ -275,5 +278,53 @@ describe('caching', () => {
     const before = calls
     await buildAnalysis(RESUME, `${posting} plus Kubernetes`)
     assert.ok(calls > before)
+  })
+})
+
+describe('shared model allowance', () => {
+  const isolate = () => {
+    process.env.GEMINI_MODEL = `budget-${(variant += 1)}-${Date.now()}`
+  }
+
+  it('stops calling out once the allowance for the minute is spent', async () => {
+    isolate()
+    process.env.AI_BUDGET_PER_MINUTE = '1'
+    stubModel(REVIEW)
+
+    const first = await buildAnalysis(RESUME, uniquePosting())
+    const spent = calls
+    const second = await buildAnalysis(RESUME, uniquePosting())
+
+    assert.equal(first.source, 'ai')
+    assert.equal(second.source, 'keyword')
+    assert.equal(calls, spent)
+    assert.match(second.aiError ?? '', /allowance/)
+  })
+
+  it('still answers with term matching when the allowance is gone', async () => {
+    isolate()
+    process.env.AI_BUDGET_PER_MINUTE = '1'
+    stubModel(REVIEW)
+
+    await buildAnalysis(RESUME, uniquePosting())
+    const degraded = await buildAnalysis(RESUME, uniquePosting())
+
+    assert.equal(degraded.source, 'keyword')
+    assert.ok(degraded.match.requirements.length > 0)
+    assert.ok(degraded.ats.checks.length > 0)
+  })
+
+  it('serves a repeat from cache without touching the allowance', async () => {
+    isolate()
+    process.env.AI_BUDGET_PER_MINUTE = '1'
+    stubModel(REVIEW)
+
+    const posting = uniquePosting()
+    const first = await buildAnalysis(RESUME, posting)
+    const repeat = await buildAnalysis(RESUME, posting)
+
+    assert.equal(first.source, 'ai')
+    assert.equal(repeat.source, 'ai')
+    assert.deepEqual(repeat, first)
   })
 })

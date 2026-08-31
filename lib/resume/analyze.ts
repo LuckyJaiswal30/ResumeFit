@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { AiRequestError, activeModel, isAiConfigured, resolveProvider } from '@/lib/ai/client'
-import { cacheTtlMs } from '@/lib/ai/config'
+import { cacheTtlMs, type ProviderConfig } from '@/lib/ai/config'
+import { checkSharedLimit } from '@/lib/security/rate-limit'
 import { requestResumeReview } from '@/lib/ai/review'
 import { buildAtsReport } from './ats'
 import {
@@ -164,6 +165,16 @@ async function aiAnalysis(
   }
 }
 
+const DAY_MS = 24 * 60 * 60_000
+
+async function reserveProviderBudget(provider: ProviderConfig) {
+  const scope = `${provider.name}:${provider.model}`
+  const perMinute = await checkSharedLimit(`${scope}:minute`, provider.budgetPerMinute, 60_000)
+  if (!perMinute.allowed) return false
+  const perDay = await checkSharedLimit(`${scope}:day`, provider.budgetPerDay, DAY_MS)
+  return perDay.allowed
+}
+
 export async function buildAnalysis(resume: string, jobDescription: string): Promise<Analysis> {
   const ats = buildAtsReport(resume)
   if (!isAiConfigured()) return keywordAnalysis(resume, jobDescription, ats, null)
@@ -171,6 +182,16 @@ export async function buildAnalysis(resume: string, jobDescription: string): Pro
   const key = cacheKey(resume, jobDescription)
   const cached = readCache(key)
   if (cached) return cached
+
+  const provider = resolveProvider()
+  if (provider && !(await reserveProviderBudget(provider))) {
+    return keywordAnalysis(
+      resume,
+      jobDescription,
+      ats,
+      'the shared allowance for the configured model is used up for now',
+    )
+  }
 
   try {
     const analysis = await aiAnalysis(resume, jobDescription, ats)

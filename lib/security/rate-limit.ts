@@ -87,13 +87,7 @@ async function inRedis(
   }
 }
 
-export async function checkRateLimit(
-  request: Request,
-  scope: string,
-  limit: number,
-  windowMs: number,
-): Promise<RateLimitResult> {
-  const key = `resumefit:${scope}:${clientId(request)}`
+async function consume(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
   const config = redisConfig()
   if (!config) return inMemory(key, limit, windowMs)
 
@@ -102,6 +96,23 @@ export async function checkRateLimit(
   } catch {
     return inMemory(key, limit, windowMs)
   }
+}
+
+export async function checkRateLimit(
+  request: Request,
+  scope: string,
+  limit: number,
+  windowMs: number,
+): Promise<RateLimitResult> {
+  return consume(`resumefit:${scope}:${clientId(request)}`, limit, windowMs)
+}
+
+export async function checkSharedLimit(
+  scope: string,
+  limit: number,
+  windowMs: number,
+): Promise<RateLimitResult> {
+  return consume(`resumefit:shared:${scope}`, limit, windowMs)
 }
 
 export function rateLimitHeaders(result: RateLimitResult) {

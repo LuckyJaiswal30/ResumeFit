@@ -8,17 +8,33 @@ export type ProviderConfig = {
   timeoutMs: number
   promptChars: number
   completionTokens: number
+  budgetPerMinute: number
+  budgetPerDay: number
 }
 
 type Defaults = {
   model: string
   promptChars: number
   completionTokens: number
+  budgetPerMinute: number
+  budgetPerDay: number
 }
 
 const DEFAULTS: Record<ProviderName, Defaults> = {
-  gemini: { model: 'gemini-3.5-flash-lite', promptChars: 16_000, completionTokens: 4500 },
-  groq: { model: 'openai/gpt-oss-20b', promptChars: 9_000, completionTokens: 4500 },
+  gemini: {
+    model: 'gemini-3.5-flash-lite',
+    promptChars: 16_000,
+    completionTokens: 4500,
+    budgetPerMinute: 10,
+    budgetPerDay: 800,
+  },
+  groq: {
+    model: 'openai/gpt-oss-20b',
+    promptChars: 9_000,
+    completionTokens: 4500,
+    budgetPerMinute: 2,
+    budgetPerDay: 35,
+  },
 }
 
 const TEMPERATURE = { min: 0, max: 2, fallback: 0 }
@@ -26,6 +42,8 @@ const TIMEOUT_MS = { min: 5_000, max: 120_000, fallback: 30_000 }
 const PROMPT_CHARS = { min: 2_000, max: 200_000 }
 const COMPLETION_TOKENS = { min: 512, max: 32_000 }
 const CACHE_MINUTES = { min: 0, max: 1440, fallback: 60 }
+const BUDGET_PER_MINUTE = { min: 1, max: 10_000 }
+const BUDGET_PER_DAY = { min: 1, max: 1_000_000 }
 
 function readNumber(name: string, bounds: { min: number; max: number }, fallback: number) {
   const raw = process.env[name]?.trim()
@@ -55,6 +73,12 @@ function build(name: ProviderName, apiKey: string): ProviderConfig {
       COMPLETION_TOKENS,
       defaults.completionTokens,
     ),
+    budgetPerMinute: readNumber(
+      'AI_BUDGET_PER_MINUTE',
+      BUDGET_PER_MINUTE,
+      defaults.budgetPerMinute,
+    ),
+    budgetPerDay: readNumber('AI_BUDGET_PER_DAY', BUDGET_PER_DAY, defaults.budgetPerDay),
   }
 }
 
