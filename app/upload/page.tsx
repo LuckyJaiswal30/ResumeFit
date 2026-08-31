@@ -1,9 +1,10 @@
 'use client'
 
-import { ChangeEvent, DragEvent, useState } from 'react'
+import { ChangeEvent, DragEvent, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, FileText, Upload, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { storeAnalysisSession } from '@/lib/analysis-session'
 
 export default function UploadPage() {
   const router = useRouter()
@@ -12,6 +13,8 @@ export default function UploadPage() {
   const [error, setError] = useState('')
   const [dragging, setDragging] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState('')
+  const inFlightRef = useRef(false)
 
   const addFile = (selected?: File) => {
     if (!selected) return
@@ -21,11 +24,46 @@ export default function UploadPage() {
     setFile(selected)
   }
 
-  const submit = () => {
+  const submit = async () => {
+    if (inFlightRef.current) return
     if (!file) return setError('Add your resume to continue.')
-    if (job.trim().length < 50) return setError('Paste at least 50 characters from the full job description.')
+    if (job.trim().length < 50) {
+      return setError('Paste at least 50 characters from the full job description.')
+    }
+
+    inFlightRef.current = true
+    setError('')
     setLoading(true)
-    window.setTimeout(() => router.push('/results'), 900)
+
+    try {
+      setStep('Reading your resume')
+      const form = new FormData()
+      form.append('resume', file)
+      const extracted = await fetch('/api/extract-text', { method: 'POST', body: form })
+      const extractedBody = await extracted.json()
+      if (!extracted.ok) throw new Error(extractedBody.error ?? 'That file could not be read.')
+
+      setStep('Comparing it to the role')
+      const analyzed = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resume: extractedBody.text, jobDescription: job.trim() }),
+      })
+      const analyzedBody = await analyzed.json()
+      if (!analyzed.ok) throw new Error(analyzedBody.error ?? 'The analysis did not finish.')
+
+      storeAnalysisSession({
+        analysis: analyzedBody.analysis,
+        fileName: file.name,
+        completedAt: Date.now(),
+      })
+      router.push('/results')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Something went wrong. Try again.')
+      setLoading(false)
+      setStep('')
+      inFlightRef.current = false
+    }
   }
 
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
@@ -50,7 +88,7 @@ export default function UploadPage() {
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
               <div>
                 <div><p className="text-sm font-semibold">Your resume</p><p className="mt-1 text-sm text-muted-foreground">PDF or DOCX, up to 10MB</p></div>
-                <div onDragOver={(event) => { event.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={onDrop} className={`mt-6 rounded-2xl border-2 border-dashed p-8 transition sm:p-10 ${dragging ? 'border-primary bg-accent' : 'border-input bg-card'}`}>
+                <div onDragOver={(event) => { event.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={onDrop} className={`mt-6 rounded-2xl border-2 border-dashed p-8 transition has-[input:focus-visible]:ring-4 has-[input:focus-visible]:ring-ring/30 sm:p-10 ${dragging ? 'border-primary bg-accent' : 'border-input bg-card'}`}>
                   <input id="resume-upload" type="file" accept=".pdf,.docx" className="sr-only" onChange={(event: ChangeEvent<HTMLInputElement>) => addFile(event.target.files?.[0])} />
                   {file ? <div className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-3 text-left"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent text-primary"><FileText aria-hidden="true" /></span><div className="min-w-0"><p className="truncate text-sm font-medium">{file.name}</p><p className="mt-1 text-xs text-muted-foreground">Ready to review</p></div></div><button type="button" onClick={() => setFile(null)} className="rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Remove resume"><X aria-hidden="true" /></button></div> : <div className="text-center"><span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-accent text-primary"><Upload aria-hidden="true" /></span><p className="mt-4 text-sm font-medium">Drop your resume here</p><p className="mt-1 text-sm text-muted-foreground">or <label htmlFor="resume-upload" className="cursor-pointer font-medium text-primary underline underline-offset-4">browse files</label></p></div>}
                 </div>
@@ -59,7 +97,7 @@ export default function UploadPage() {
               <div><div><p className="text-sm font-semibold">Job description</p><p className="mt-1 text-sm text-muted-foreground">Paste the complete listing for the best match.</p></div><textarea value={job} onChange={(event) => setJob(event.target.value)} placeholder="Paste the job description here..." className="mt-6 min-h-56 w-full resize-y rounded-2xl border border-input bg-card p-5 text-sm leading-6 outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-ring/15" aria-label="Job description" /><div className="mt-2 flex justify-between text-xs text-muted-foreground"><span>Include responsibilities and requirements</span><span>{job.length} characters</span></div></div>
             </div>
             {error && <p className="mt-6 text-sm text-destructive" role="alert">{error}</p>}
-            <div className="mt-8 flex flex-col-reverse gap-5 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-5 text-muted-foreground">Your documents are used only to create this analysis.</p><button type="button" onClick={submit} disabled={loading} className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:cursor-wait disabled:opacity-70">{loading ? 'Preparing your review...' : 'Start analysis'} {!loading && <ArrowRight className="ml-2" aria-hidden="true" />}</button></div>
+            <div className="mt-8 flex flex-col-reverse gap-5 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs leading-5 text-muted-foreground">Your documents are used only to create this analysis.</p><button type="button" onClick={submit} disabled={loading} className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:cursor-wait disabled:opacity-70">{loading ? `${step}...` : 'Start analysis'} {!loading && <ArrowRight className="ml-2" aria-hidden="true" />}</button></div>
           </section>
         </div>
       </div>

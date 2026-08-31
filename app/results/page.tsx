@@ -1,18 +1,125 @@
 'use client'
 
-import { ArrowLeft, Check, ChevronDown, CircleAlert, FileText } from 'lucide-react'
+import { ArrowLeft, FileText } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useSyncExternalStore } from 'react'
+import { AnalysisSourceNote } from '@/components/results/analysis-source-note'
+import { AtsReport } from '@/components/results/ats-report'
+import { FindingList } from '@/components/results/finding-list'
+import { FitScore } from '@/components/results/fit-score'
+import { PhrasingList } from '@/components/results/phrasing-list'
+import { RequirementList } from '@/components/results/requirement-list'
+import { RewriteList } from '@/components/results/rewrite-list'
+import {
+  readAnalysisSession,
+  subscribeToAnalysisSession,
+  type AnalysisSession,
+} from '@/lib/analysis-session'
 
-const matches = ['Product strategy and roadmap ownership', 'Figma and collaborative prototyping', 'Cross-functional stakeholder communication', 'User research and usability testing']
-const gaps = ['Design systems experience is not explicit', 'No measurable outcomes in two recent roles', 'The opening summary could be more specific']
-const recommendations = [
-  ['Make your impact measurable', 'Add a result to your two strongest project bullets. For example: “Reduced onboarding drop-off by 18% through…”'],
-  ['Name the systems you work in', 'The role emphasizes scalable design systems. Add the tools, processes, or contribution that show this experience.'],
-  ['Lead with your product strength', 'Rewrite your summary around the kind of product problems you solve and the teams you help move forward.'],
-]
+function ResultsHeader() {
+  return (
+    <header className="mx-auto flex h-20 max-w-5xl items-center justify-between border-b border-border px-5 sm:px-8">
+      <Link href="/" className="text-[17px] font-semibold tracking-[-0.04em]">
+        resumefit<span className="text-primary">.</span>
+      </Link>
+      <Link
+        href="/upload"
+        className="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground outline-none transition hover:text-foreground focus-visible:ring-4 focus-visible:ring-ring/30"
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" /> New analysis
+      </Link>
+    </header>
+  )
+}
 
 export default function ResultsPage() {
-  const [open, setOpen] = useState(0)
-  return <main className="flex-1 bg-background text-foreground"><header className="mx-auto flex h-20 max-w-5xl items-center justify-between border-b border-border px-5 sm:px-8"><Link href="/" className="text-[17px] font-semibold tracking-[-0.04em]">resumefit<span className="text-primary">.</span></Link><Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> New analysis</Link></header><div className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16"><div className="mb-12"><p className="mb-3 text-sm font-medium text-primary">Your analysis</p><h1 className="text-balance text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">Senior Product Designer <span className="text-muted-foreground">at Notion</span></h1><div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground"><FileText className="size-4" /> jordan-resume.pdf <span className="text-border">·</span> Just now</div></div><section className="grid gap-6 border-y border-border py-8 md:grid-cols-[260px_1fr] md:gap-12"><div><p className="text-sm text-muted-foreground">Overall fit</p><div className="mt-2 flex items-baseline gap-2"><span className="text-7xl font-semibold tracking-[-0.08em]">86</span><span className="text-lg text-muted-foreground">/ 100</span></div><p className="mt-4 text-sm leading-6 text-muted-foreground">A strong starting point. Your experience aligns with most of what this role asks for.</p></div><div className="grid gap-5 sm:grid-cols-2"><div className="rounded-xl bg-accent p-5"><p className="text-sm font-medium text-accent-foreground">What is working</p><p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">4 key matches</p><p className="mt-1 text-sm text-muted-foreground">Core skills are clearly represented.</p></div><div className="rounded-xl bg-secondary p-5"><p className="text-sm font-medium text-secondary-foreground">Worth improving</p><p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">3 opportunities</p><p className="mt-1 text-sm text-muted-foreground">Small edits could make a difference.</p></div></div></section><div className="mt-12 grid gap-12 lg:grid-cols-[1fr_360px]"><div className="flex flex-col gap-12"><section><h2 className="text-xl font-semibold tracking-[-0.03em]">Where you align</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">These requirements are already visible in your resume.</p><ul className="mt-6 flex flex-col gap-3">{matches.map((match) => <li key={match} className="flex items-start gap-3 rounded-lg border border-border p-4 text-sm"><Check className="mt-0.5 size-4 shrink-0 text-success" /><span>{match}</span></li>)}</ul></section><section><h2 className="text-xl font-semibold tracking-[-0.03em]">What is underrepresented</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">The job description asks for these, but they are not clear enough yet.</p><ul className="mt-6 flex flex-col gap-3">{gaps.map((gap) => <li key={gap} className="flex items-start gap-3 rounded-lg border border-border p-4 text-sm"><CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" /><span>{gap}</span></li>)}</ul></section></div><aside><div className="sticky top-8 rounded-xl border border-border bg-card p-5"><p className="text-sm font-medium">Recommended next steps</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Start with the changes most likely to improve your match.</p><div className="mt-5 flex flex-col divide-y divide-border">{recommendations.map(([title, detail], index) => <div key={title} className="py-4 first:pt-0 last:pb-0"><button type="button" onClick={() => setOpen(open === index ? -1 : index)} className="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold"><span className="flex items-start gap-3"><span className="text-muted-foreground">{index + 1}</span>{title}</span><ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${open === index ? 'rotate-180' : ''}`} /></button>{open === index && <p className="mt-3 pl-6 text-sm leading-6 text-muted-foreground">{detail}</p>}</div>)}</div></div></aside></div></div></main>
+  const session = useSyncExternalStore<AnalysisSession | null | undefined>(
+    subscribeToAnalysisSession,
+    readAnalysisSession,
+    () => undefined,
+  )
+
+  if (session === undefined) {
+    return (
+      <main className="flex-1">
+        <ResultsHeader />
+      </main>
+    )
+  }
+
+  if (!session) {
+    return (
+      <main className="flex-1">
+        <ResultsHeader />
+        <div className="mx-auto max-w-5xl px-5 py-24 sm:px-8">
+          <div className="mx-auto max-w-md text-center">
+            <h1 className="text-3xl font-semibold tracking-[-0.05em]">No analysis to show</h1>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">
+              Results live in this browser tab only, so they are gone after a refresh or a new tab.
+              Run the comparison again and it will be here.
+            </p>
+            <Link
+              href="/upload"
+              className="mt-8 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition hover:brightness-110 focus-visible:ring-4 focus-visible:ring-ring/30"
+            >
+              Start an analysis
+            </Link>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  const { analysis, fileName } = session
+  const requirements = analysis.match.requirements
+  const covered = requirements.filter((item) => item.coverage !== 'missing')
+  const missing = requirements.filter((item) => item.coverage === 'missing')
+
+  return (
+    <main className="flex-1">
+      <ResultsHeader />
+      <div className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16">
+        <div className="mb-12">
+          <p className="mb-3 text-sm font-medium text-primary">Your analysis</p>
+          <h1 className="text-balance text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">
+            How your resume lines up
+          </h1>
+          <div className="mt-5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <FileText className="size-4" aria-hidden="true" />
+            {fileName}
+            {analysis.model && (
+              <>
+                <span className="text-border">·</span>
+                <span className="font-mono text-xs">{analysis.model}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <FitScore match={analysis.match} covered={covered.length} missing={missing.length} />
+
+        <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_360px]">
+          <div className="flex flex-col gap-12">
+            <AnalysisSourceNote analysis={analysis} />
+            <RequirementList
+              title="Where you align"
+              description="The posting asks for these and your resume backs them up."
+              requirements={covered}
+            />
+            <RequirementList
+              title="What is missing"
+              description="Asked for in the posting, but not visible in your resume yet."
+              requirements={missing}
+            />
+            <PhrasingList phrasing={analysis.phrasing} />
+            <RewriteList rewrites={analysis.rewrites} />
+            <AtsReport ats={analysis.ats} />
+          </div>
+          <aside>
+            <FindingList findings={analysis.findings} />
+          </aside>
+        </div>
+      </div>
+    </main>
+  )
 }
