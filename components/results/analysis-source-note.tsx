@@ -8,11 +8,11 @@ export function AnalysisSourceNote({ analysis }: { analysis: Analysis }) {
     <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-5 text-sm">
       <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       <div>
-        <p className="font-medium">This one was matched on terms alone</p>
+        <p className="font-medium">Matched on words alone this time</p>
         <p className="mt-1.5 leading-6 text-muted-foreground">
           {analysis.aiError
-            ? `The written review was not available because ${analysis.aiError}. What you see below compares the words in both documents, so there are no quotes or rewrites.`
-            : 'No model is configured, so this compares the words in both documents rather than reading them. There are no quotes or rewrites.'}
+            ? `The written review did not run because ${analysis.aiError}. What follows compares the wording in both documents, so there are no quotes from your resume and no suggested rewrites.`
+            : 'No model is set up, so this compares the wording in both documents rather than reading them. There are no quotes from your resume and no suggested rewrites.'}
         </p>
       </div>
     </div>

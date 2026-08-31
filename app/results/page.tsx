@@ -53,10 +53,10 @@ export default function ResultsPage() {
         <ResultsHeader />
         <div className="mx-auto max-w-5xl px-5 py-24 sm:px-8">
           <div className="mx-auto max-w-md text-center">
-            <h1 className="text-3xl font-semibold tracking-[-0.05em]">No analysis to show</h1>
+            <h1 className="text-3xl font-semibold tracking-[-0.05em]">Nothing here yet</h1>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              Results live in this browser tab only, so they are gone after a refresh or a new tab.
-              Run the comparison again and it will be here.
+              Results only live in the tab that made them, so a refresh or a new tab clears them.
+              Run the comparison again and it will be right here.
             </p>
             <Link
               href="/upload"
@@ -103,12 +103,12 @@ export default function ResultsPage() {
             <AnalysisSourceNote analysis={analysis} />
             <RequirementList
               title="Where you align"
-              description="The posting asks for these and your resume backs them up."
+              description="The posting asks for these, and your resume shows them."
               requirements={covered}
             />
             <RequirementList
               title="What is missing"
-              description="Asked for in the posting, but not visible in your resume yet."
+              description="The posting asks for these. Your resume does not show them yet."
               requirements={missing}
             />
             <PhrasingList phrasing={analysis.phrasing} />

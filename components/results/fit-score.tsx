@@ -39,7 +39,7 @@ export function FitScore({
             {covered} {covered === 1 ? 'match' : 'matches'}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Requirements your resume already backs up.
+            Requirements with a line to back them.
           </p>
         </div>
         <div className="rounded-xl bg-secondary p-5">
@@ -48,7 +48,7 @@ export function FitScore({
             {missing} {missing === 1 ? 'gap' : 'gaps'}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Asked for in the posting, not visible yet.
+            Asked for, and not evidenced yet.
           </p>
         </div>
       </div>

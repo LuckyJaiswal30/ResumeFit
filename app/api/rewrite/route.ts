@@ -17,14 +17,14 @@ export async function POST(request: Request) {
   const limitHeaders = rateLimitHeaders(rate)
   if (!rate.allowed) {
     return Response.json(
-      { error: 'Too many rewrites in a short window. Try again in a few minutes.' },
+      { error: 'That is a lot of rewrites in a short space of time. Try again in a few minutes.' },
       { status: 429, headers: limitHeaders },
     )
   }
 
   if (!isAiConfigured()) {
     return Response.json(
-      { error: 'Rewrites need an AI provider key. Add one to .env.local and restart the server.' },
+      { error: 'Rewrites need a model key. Add one to .env.local and restart the server.' },
       { status: 503 },
     )
   }
@@ -33,21 +33,21 @@ export async function POST(request: Request) {
   try {
     payload = requestSchema.parse(await request.json())
   } catch {
-    return Response.json({ error: 'Send a full bullet and the job description.' }, { status: 400 })
+    return Response.json({ error: 'Send a whole bullet and the posting it is aimed at.' }, { status: 400 })
   }
 
   try {
     const result = await requestBulletRewrite(payload.bullet, payload.jobDescription)
     if (addsUnsupportedNumber(payload.bullet, result.rewrite)) {
       return Response.json(
-        { error: 'The rewrite invented a number that is not in your bullet, so it was discarded.' },
+        { error: 'The rewrite made up a number that is not in your bullet, so it was thrown away.' },
         { status: 422 },
       )
     }
     return Response.json(result, { headers: limitHeaders })
   } catch (error) {
     if (error instanceof AiUnavailableError) {
-      return Response.json({ error: 'No AI provider is configured.' }, { status: 503 })
+      return Response.json({ error: 'No model is set up.' }, { status: 503 })
     }
     return Response.json({ error: 'The rewrite did not come back. Try again.' }, { status: 502 })
   }

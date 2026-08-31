@@ -13,7 +13,7 @@ export function AtsReport({ ats }: { ats: AtsReportData }) {
         </p>
       </div>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Applicant tracking systems read plain text before a person ever does.
+        Most applications are read by software before a person sees them. This is what it picks up.
       </p>
       <ul className="mt-6 flex flex-col gap-3">
         {ats.checks.map((check) => (

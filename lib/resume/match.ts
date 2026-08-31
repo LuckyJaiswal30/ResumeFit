@@ -149,7 +149,7 @@ export function groundRequirements(resume: string, requirements: Requirement[]):
       ...requirement,
       coverage: downgrade(requirement.coverage),
       evidenceVerified: false,
-      note: 'The supporting line could not be located in the resume text, so this is scored conservatively.',
+      note: 'Nothing in your experience backs this up, so it is not counted as a match.',
     }
   })
 }
@@ -166,13 +166,13 @@ function summarize(score: number, requirements: Requirement[]) {
   )
   if (score >= 80) {
     return missingRequired.length === 0
-      ? 'Your resume covers the requirements this role asks for.'
-      : `Strong overall, but ${missingRequired.length} required item${missingRequired.length === 1 ? ' is' : 's are'} still missing.`
+      ? 'Your resume covers what this role asks for.'
+      : `Strong overall, though ${missingRequired.length} required item${missingRequired.length === 1 ? ' is' : 's are'} still missing.`
   }
   if (score >= 55) {
-    return `A workable match. ${missingRequired.length} required item${missingRequired.length === 1 ? '' : 's'} would move this the furthest.`
+    return `A workable match. Closing ${missingRequired.length} required item${missingRequired.length === 1 ? '' : 's'} would move it the furthest.`
   }
-  return 'This resume does not yet show the core requirements for the role.'
+  return 'This resume does not show the core requirements for the role yet.'
 }
 
 export function scoreRequirements(requirements: Requirement[]): MatchReport {
@@ -226,8 +226,8 @@ export function keywordRequirements(resume: string, jobDescription: string): Req
       evidence: null,
       evidenceVerified: false,
       note: covered
-        ? 'This term appears in both the job description and your resume.'
-        : 'This term appears in the job description but not in your resume.',
+        ? 'This word shows up in both the posting and your resume.'
+        : 'The posting uses this word. Your resume does not.',
     }
   })
 }
