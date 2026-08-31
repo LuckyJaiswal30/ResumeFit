@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist } from 'next/font/google'
+import { SiteFooter } from '@/components/site-footer'
 import './globals.css'
 
 const geist = Geist({
@@ -25,7 +26,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={geist.variable}>
-      <body className="antialiased">{children}</body>
+      <body className="flex min-h-screen flex-col antialiased">
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   )
 }

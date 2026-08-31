@@ -35,7 +35,7 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="flex-1 bg-background text-foreground">
       <header className="mx-auto flex h-20 max-w-7xl items-center justify-between border-b border-border px-5 sm:px-8 lg:px-10">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"><ArrowLeft aria-hidden="true" /> Home</Link>
         <Link href="/" className="text-[17px] font-semibold tracking-[-0.04em]">resumefit<span className="text-primary">.</span></Link>
