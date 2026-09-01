@@ -43,6 +43,33 @@ export default function ResultsPage() {
     return (
       <main className="flex-1">
         <ResultsHeader />
+        <div
+          className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16"
+          role="status"
+          aria-label="Loading your analysis"
+        >
+          <div className="mb-12 flex flex-col gap-4">
+            <div className="h-4 w-28 rounded bg-muted" />
+            <div className="h-10 w-2/3 rounded bg-muted sm:h-12" />
+            <div className="h-4 w-48 rounded bg-muted" />
+          </div>
+          <div className="grid gap-6 border-y border-border py-8 md:grid-cols-[260px_1fr] md:gap-12">
+            <div className="flex flex-col gap-4">
+              <div className="h-4 w-20 rounded bg-muted" />
+              <div className="h-16 w-32 rounded bg-muted" />
+              <div className="h-4 w-full rounded bg-muted" />
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="h-32 rounded-xl bg-muted" />
+              <div className="h-32 rounded-xl bg-muted" />
+            </div>
+          </div>
+          <div className="mt-12 flex flex-col gap-3">
+            <div className="h-6 w-40 rounded bg-muted" />
+            <div className="h-16 rounded-lg bg-muted" />
+            <div className="h-16 rounded-lg bg-muted" />
+          </div>
+        </div>
       </main>
     )
   }
