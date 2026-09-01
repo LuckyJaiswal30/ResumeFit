@@ -1,3 +1,4 @@
+import { CopyButton } from '@/components/results/copy-button'
 import type { BulletRewrite } from '@/lib/resume/types'
 
 export function RewriteList({ rewrites }: { rewrites: BulletRewrite[] }) {
@@ -14,7 +15,10 @@ export function RewriteList({ rewrites }: { rewrites: BulletRewrite[] }) {
           <li key={rewrite.original} className="rounded-lg border border-border p-4 text-sm">
             <p className="font-mono text-[11px] text-muted-foreground">yours</p>
             <p className="mt-1.5 leading-6 text-muted-foreground">{rewrite.original}</p>
-            <p className="mt-4 font-mono text-[11px] text-muted-foreground">suggested</p>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <p className="font-mono text-[11px] text-muted-foreground">suggested</p>
+              <CopyButton value={rewrite.rewrite} label="Copy the suggested bullet" />
+            </div>
             <p className="mt-1.5 leading-6 font-medium">{rewrite.rewrite}</p>
             {rewrite.reason && (
               <p className="mt-3 border-t border-border pt-3 leading-6 text-muted-foreground">
