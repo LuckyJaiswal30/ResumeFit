@@ -41,7 +41,7 @@ export default function ResultsPage() {
 
   if (session === undefined) {
     return (
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <ResultsHeader />
         <div
           className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16"
@@ -76,7 +76,7 @@ export default function ResultsPage() {
 
   if (!session) {
     return (
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <ResultsHeader />
         <div className="mx-auto max-w-5xl px-5 py-24 sm:px-8">
           <div className="mx-auto max-w-md text-center">
@@ -104,7 +104,7 @@ export default function ResultsPage() {
   const absent = missing.filter((item) => item.evidence === null)
 
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <ResultsHeader />
       <div className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16">
         <div className="mb-12">

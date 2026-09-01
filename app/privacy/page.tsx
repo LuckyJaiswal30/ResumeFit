@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function PrivacyPage() {
   return (
-    <main className="flex-1 bg-background px-5 py-12 text-foreground sm:px-8">
+    <main id="main" className="flex-1 bg-background px-5 py-12 text-foreground sm:px-8">
       <article className="mx-auto max-w-2xl">
         <Link href="/" className="text-sm text-primary">
           ← Back to ResumeFit

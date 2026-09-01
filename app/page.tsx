@@ -1,8 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown, Menu, X } from 'lucide-react'
+
+const SECTIONS = [
+  ['#features', 'Features'],
+  ['#how-it-works', 'How it works'],
+  ['#limits', 'Limits'],
+  ['#faq', 'FAQ'],
+]
 
 const faqs = [
   [
@@ -54,64 +61,61 @@ function FAQ() {
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [menuOpen])
   return (
-    <main className="flex-1 bg-background text-foreground">
+    <main id="main" className="flex-1 bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur-xl">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
-          <Link href="/" className="text-lg font-semibold tracking-[-0.05em]">
+          <Link
+            href="/"
+            className="rounded-sm text-lg font-semibold tracking-[-0.05em] outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
+          >
             resumefit<span className="text-primary">.</span>
           </Link>
-          <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-            <a href="#features" className="transition hover:text-foreground">
-              Features
-            </a>
-            <a href="#how-it-works" className="transition hover:text-foreground">
-              How it works
-            </a>
-            <a href="#limits" className="transition hover:text-foreground">
-              Limits
-            </a>
-            <a href="#faq" className="transition hover:text-foreground">
-              FAQ
-            </a>
+          <nav
+            aria-label="Page sections"
+            className="hidden items-center gap-8 text-sm text-muted-foreground md:flex"
+          >
+            {SECTIONS.map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="rounded-sm outline-none transition-colors hover:text-foreground focus-visible:ring-4 focus-visible:ring-ring/30"
+              >
+                {label}
+              </a>
+            ))}
           </nav>
-          <div className="hidden items-center md:flex">
-            <a
-              href="mailto:luckyjaiswal3405@gmail.com"
-              className="text-sm text-muted-foreground transition hover:text-foreground"
-            >
-              Contact
-            </a>
-          </div>
           <button
+            type="button"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            className="md:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            className="rounded-sm outline-none focus-visible:ring-4 focus-visible:ring-ring/30 md:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? <X /> : <Menu />}
+            {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
           </button>
         </div>
         {menuOpen && (
-          <nav className="flex flex-col gap-5 border-t border-border px-5 py-6 text-sm md:hidden">
-            <a href="#features" onClick={() => setMenuOpen(false)}>
-              Features
-            </a>
-            <a href="#how-it-works" onClick={() => setMenuOpen(false)}>
-              How it works
-            </a>
-            <a href="#limits" onClick={() => setMenuOpen(false)}>
-              Limits
-            </a>
-            <a href="#faq" onClick={() => setMenuOpen(false)}>
-              FAQ
-            </a>
-            <a
-              href="mailto:luckyjaiswal3405@gmail.com"
-              onClick={() => setMenuOpen(false)}
-              className="text-muted-foreground"
-            >
-              Contact support
-            </a>
+          <nav
+            id="mobile-nav"
+            aria-label="Page sections"
+            className="flex flex-col gap-5 border-t border-border px-5 py-6 text-sm md:hidden"
+          >
+            {SECTIONS.map(([href, label]) => (
+              <a key={href} href={href} onClick={() => setMenuOpen(false)}>
+                {label}
+              </a>
+            ))}
           </nav>
         )}
       </header>

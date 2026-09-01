@@ -75,7 +75,7 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="flex-1 bg-background text-foreground">
+    <main id="main" className="flex-1 bg-background text-foreground">
       <header className="mx-auto flex h-20 max-w-7xl items-center justify-between border-b border-border px-5 sm:px-8 lg:px-10">
         <Link
           href="/"
