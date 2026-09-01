@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   const limitHeaders = rateLimitHeaders(rate)
   if (!rate.allowed) {
     return Response.json(
-      { error: 'That is a lot of uploads in a short space of time. Try again in a few minutes.' },
+      { error: 'That’s a lot of uploads in a short space of time. Try again in a few minutes.' },
       { status: 429, headers: limitHeaders },
     )
   }
@@ -92,10 +92,10 @@ export async function POST(request: Request) {
       if (looksBinary(bytes)) return fail('There is no readable text in that file.')
       text = decodeText(bytes)
     } else if (name.endsWith('.docx')) {
-      if (!startsWith(bytes, 'PK\u0003\u0004')) return fail('That is not really a .docx file.')
+      if (!startsWith(bytes, 'PK\u0003\u0004')) return fail('That’s not really a .docx file.')
       text = (await mammoth.extractRawText({ buffer: Buffer.from(bytes) })).value
     } else if (name.endsWith('.pdf')) {
-      if (!startsWith(bytes, '%PDF')) return fail('That is not really a .pdf file.')
+      if (!startsWith(bytes, '%PDF')) return fail('That’s not really a .pdf file.')
       text = await extractPdfText(bytes)
     } else {
       return fail('Upload a .pdf, .docx or .txt file.')
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     text = tidy(text)
     if (text.length < MIN_TEXT_LENGTH) {
       return fail(
-        'There is almost no readable text in that file. If it is a scan or an image, export a text version instead.',
+        'There’s almost no readable text in that file. If it’s a scan or an image, export a text version instead.',
         422,
       )
     }

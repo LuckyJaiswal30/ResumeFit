@@ -13,8 +13,8 @@ export function FindingList({ findings }: { findings: Finding[] }) {
       <p className="text-sm font-medium">Fix first</p>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {findings.length > 0
-          ? 'Start at the top. These move the score the most.'
-          : 'Nothing major to flag, so the gaps above are the place to start.'}
+          ? 'Start at the top. These move the score most.'
+          : 'Nothing major to flag. Start with the gaps above.'}
       </p>
       {findings.length > 0 && (
         <div className="mt-5 flex flex-col divide-y divide-border">

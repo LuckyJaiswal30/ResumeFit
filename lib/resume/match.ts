@@ -153,7 +153,7 @@ export function groundRequirements(resume: string, requirements: Requirement[]):
       note:
         coverage === 'missing'
           ? 'You name this, but no work backs it up.'
-          : 'The line meant to back this up is not in your resume, so it scores lower.',
+          : 'The line meant to back this up isn’t in your resume, so it scores lower.',
     }
   })
 }
@@ -176,7 +176,7 @@ function summarize(score: number, requirements: Requirement[]) {
   if (score >= 55) {
     return `A workable match. Closing ${missingRequired.length} required item${missingRequired.length === 1 ? '' : 's'} would move it the furthest.`
   }
-  return 'This resume does not show the core requirements for the role yet.'
+  return 'This resume doesn’t show the core requirements for the role yet.'
 }
 
 export function scoreRequirements(requirements: Requirement[]): MatchReport {
@@ -231,7 +231,7 @@ export function keywordRequirements(resume: string, jobDescription: string): Req
       evidenceVerified: false,
       note: covered
         ? 'This word appears in both the posting and your resume.'
-        : 'The posting uses this word. Your resume does not.',
+        : 'The posting uses this word. Your resume doesn’t.',
     }
   })
 }

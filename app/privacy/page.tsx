@@ -23,7 +23,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold text-foreground">Data minimization</h2>
             <p className="mt-2">
               There is no account and nothing to sign up for. Leave out anything a hiring manager
-              would not need. The only thing checked is how your experience lines up with the
+              wouldn’t need. The only thing checked is how your experience lines up with the
               posting.
             </p>
           </section>

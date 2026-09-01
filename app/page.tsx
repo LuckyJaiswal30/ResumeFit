@@ -7,19 +7,19 @@ import { ChevronDown, Menu, X } from 'lucide-react'
 const faqs = [
   [
     'What does it actually check?',
-    'It pulls the requirements out of the posting and checks each one against your resume. A match has to quote a line from your text. Anything it cannot verify moves to your gaps.',
+    'It pulls the requirements out of the posting and checks each one against your resume. A match has to quote a line from your text, or it moves to your gaps.',
   ],
   [
     'What happens to my resume?',
-    'The file is never saved. Your text goes to the model that writes the analysis. The result is held for about an hour, so running the same pair again costs nothing. What you see lives in this tab and goes when you close it.',
+    'The file is never saved. Your text goes to the model that writes the analysis, and the result is cached for an hour so a repeat costs nothing. What you see lives in this tab and goes when you close it.',
   ],
   [
     'What can I upload?',
-    'A PDF, DOCX or TXT, up to 4 MB. Export it as text rather than scanning a printout, because a picture has no text to read. A file that will not parse is refused, not guessed at.',
+    'A PDF, DOCX or TXT, up to 4 MB. Export it as text, not a scan, since a picture has no text to read. A file that won’t parse is refused, not guessed at.',
   ],
   [
     'Will it rewrite my bullets?',
-    'It suggests rewrites for a few of them. No number, employer or title appears that you did not write. A bullet with no result gets a stronger verb, not an invented metric. The edit stays yours.',
+    'It suggests rewrites for a few of them. No number, employer or title appears that you didn’t write. A bullet with no result gets a stronger verb. The edit stays yours.',
   ],
 ]
 
@@ -123,7 +123,7 @@ export default function Home() {
             Know exactly why you fit.
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-            Paste a job posting and your resume. See what matches, what does not, and why.
+            Paste a job posting and your resume. See what matches, what doesn’t, and why.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
             <Link
@@ -183,7 +183,7 @@ export default function Home() {
               ],
               [
                 '03',
-                'Will not flatter you',
+                'Won’t flatter you',
                 'Rewrites keep your facts. A weak bullet gets a stronger verb, not an invented number.',
               ],
             ].map(([n, t, d]) => (
@@ -203,7 +203,7 @@ export default function Home() {
         <div>
           <p className="text-sm font-medium text-primary">How it works</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
-            Three steps, start to finish.
+            It takes three steps.
           </h2>
         </div>
         <div className="flex flex-col divide-y divide-border border-y border-border">
@@ -225,31 +225,31 @@ export default function Home() {
       <section id="limits" className="border-y border-border bg-card">
         <div className="mx-auto grid max-w-7xl gap-14 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:px-10">
           <div>
-            <p className="text-sm font-medium text-primary">Deliberate limits</p>
+            <p className="text-sm font-medium text-primary">On purpose</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
-              What it will not do.
+              What it won’t do.
             </h2>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              A tool that agrees with everything is not much use.
+              A tool that agrees with everything isn’t much use.
             </p>
           </div>
           <div className="flex flex-col divide-y divide-border border-y border-border">
             {[
               [
-                'Count a skill it cannot find',
-                'A skills list is not evidence. Without a line showing the work, the requirement moves to your gaps.',
+                'Count a skill it can’t find',
+                'A skills list isn’t evidence. Without a line showing the work, the requirement moves to your gaps.',
               ],
               [
                 'Invent a number to make a bullet land',
-                'Rewrites keep your facts. No metric or outcome appears that you did not write.',
+                'Rewrites keep your facts. No metric or outcome appears that you didn’t write.',
               ],
               [
-                'Score something that is not a resume',
+                'Score something that isn’t a resume',
                 'Invoices, recipes and contracts are turned away with a reason.',
               ],
               [
                 'Pretend a model read it when none did',
-                'If the review cannot run, the page says so and compares wording instead.',
+                'If the review can’t run, the page says so and compares wording instead.',
               ],
             ].map(([t, d]) => (
               <div key={t} className="grid gap-4 py-7 sm:grid-cols-[72px_1fr]">
@@ -269,7 +269,7 @@ export default function Home() {
       >
         <div>
           <p className="text-sm font-medium text-primary">Worth knowing first</p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">Before you begin.</h2>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">Before you start.</h2>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
             Something not covered here?{' '}
             <a href="mailto:luckyjaiswal3405@gmail.com" className="underline underline-offset-4">

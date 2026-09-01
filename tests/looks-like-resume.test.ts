@@ -134,7 +134,7 @@ describe('documents that must be turned away', () => {
 describe('the rejection message', () => {
   it('names what was missing and stays short', () => {
     const message = resumeRejectionMessage(looksLikeResume(NOT_RESUMES['an invoice']))
-    assert.match(message, /does not look like a resume/i)
+    assert.match(message, /doesn’t look like a resume/i)
     assert.match(message, /Experience, Education or Skills/)
     assert.ok(message.length < 260)
   })

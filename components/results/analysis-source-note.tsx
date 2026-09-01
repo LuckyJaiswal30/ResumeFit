@@ -11,7 +11,7 @@ export function AnalysisSourceNote({ analysis }: { analysis: Analysis }) {
         <p className="font-medium">Matched on words alone</p>
         <p className="mt-1.5 leading-6 text-muted-foreground">
           {analysis.aiError
-            ? `The review did not run because ${analysis.aiError}. This compares wording only, so there are no quotes or rewrites.`
+            ? `The review didn’t run because ${analysis.aiError}. This compares wording only, so there are no quotes or rewrites.`
             : 'No model is set up, so this compares wording only. There are no quotes or rewrites.'}
         </p>
       </div>

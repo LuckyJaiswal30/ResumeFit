@@ -20,8 +20,8 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">No guarantee</h2>
             <p className="mt-2">
-              This is not employment, legal or recruiting advice. A good score does not mean an
-              interview. It reads two documents. It does not predict anything.
+              This isn’t employment, legal or recruiting advice. A good score doesn’t mean an
+              interview. It reads two documents. It doesn’t predict anything.
             </p>
           </section>
           <section>

@@ -52,7 +52,7 @@ export default function UploadPage() {
         body: JSON.stringify({ resume: extractedBody.text, jobDescription: job.trim() }),
       })
       const analyzedBody = await analyzed.json()
-      if (!analyzed.ok) throw new Error(analyzedBody.error ?? 'The analysis did not finish.')
+      if (!analyzed.ok) throw new Error(analyzedBody.error ?? 'The analysis didn’t finish.')
 
       storeAnalysisSession({
         analysis: analyzedBody.analysis,
@@ -61,7 +61,7 @@ export default function UploadPage() {
       })
       router.push('/results')
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'That did not go through. Try again.')
+      setError(cause instanceof Error ? cause.message : 'That didn’t go through. Try again.')
       setLoading(false)
       setStep('')
       inFlightRef.current = false
@@ -101,7 +101,7 @@ export default function UploadPage() {
               Compare your resume to the job.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Add your resume and the posting. That is all it needs.
+              Add your resume and the posting. That’s all it needs.
             </p>
           </div>
 

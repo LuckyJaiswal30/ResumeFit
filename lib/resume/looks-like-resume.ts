@@ -106,5 +106,5 @@ export function looksLikeResume(text: string): ResumeCheck {
 
 export function resumeRejectionMessage(check: ResumeCheck) {
   const reasons = check.missing.slice(0, 3).join(', ')
-  return `This does not look like a resume. There is no sign of ${reasons}. Upload your CV instead, or paste the text if the file did not read cleanly.`
+  return `This doesn’t look like a resume. There’s no sign of ${reasons}. Upload your CV instead, or paste the text if the file didn’t read cleanly.`
 }

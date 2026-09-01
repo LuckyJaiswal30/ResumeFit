@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   if (!rate.allowed) {
     return Response.json(
       {
-        error: 'That is a lot of comparisons in a short space of time. Try again in a few minutes.',
+        error: 'That’s a lot of comparisons in a short space of time. Try again in a few minutes.',
       },
       { status: 429, headers: limitHeaders },
     )
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     return Response.json({ analysis }, { headers: limitHeaders })
   } catch {
     return Response.json(
-      { error: 'The comparison did not finish. Try again.' },
+      { error: 'The comparison didn’t finish. Try again.' },
       { status: 500, headers: limitHeaders },
     )
   }
