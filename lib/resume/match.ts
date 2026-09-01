@@ -152,8 +152,8 @@ export function groundRequirements(resume: string, requirements: Requirement[]):
       evidenceVerified: false,
       note:
         coverage === 'missing'
-          ? 'You mention this, but nothing in your experience shows you doing it.'
-          : 'The line meant to back this up was not in your resume, so it is scored lower.',
+          ? 'You name this, but no work backs it up.'
+          : 'The line meant to back this up is not in your resume, so it scores lower.',
     }
   })
 }
@@ -230,7 +230,7 @@ export function keywordRequirements(resume: string, jobDescription: string): Req
       evidence: null,
       evidenceVerified: false,
       note: covered
-        ? 'This word shows up in both the posting and your resume.'
+        ? 'This word appears in both the posting and your resume.'
         : 'The posting uses this word. Your resume does not.',
     }
   })

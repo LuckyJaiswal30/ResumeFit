@@ -10,7 +10,7 @@ export function SiteFooter() {
               resumefit<span className="text-primary">.</span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-6 text-muted-foreground">
-              See where you actually stand before you hit send.
+              See where you stand before you hit send.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 text-sm sm:grid-cols-3">

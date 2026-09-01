@@ -82,14 +82,13 @@ export default function ResultsPage() {
           <div className="mx-auto max-w-md text-center">
             <h1 className="text-3xl font-semibold tracking-[-0.05em]">Nothing here yet</h1>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              Results only live in the tab that made them, so a refresh or a new tab clears them.
-              Run the comparison again and it will be right here.
+              Results live only in the tab that made them. Run the comparison again.
             </p>
             <Link
               href="/upload"
               className="mt-8 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30"
             >
-              Start an analysis
+              Start a comparison
             </Link>
           </div>
         </div>
@@ -132,17 +131,17 @@ export default function ResultsPage() {
             <AnalysisSourceNote analysis={analysis} />
             <RequirementList
               title="Where you align"
-              description="The posting asks for these, and your resume shows them."
+              description="The posting asks for these. Your resume shows them."
               requirements={covered}
             />
             <RequirementList
               title="Listed, but not shown"
-              description="These appear somewhere in your resume without any work behind them. A line in your experience showing you doing it is usually a smaller edit than it sounds."
+              description="You name these, but no work backs them up. One line usually fixes it."
               requirements={claimed}
             />
             <RequirementList
               title="Not there at all"
-              description="The posting asks for these and your resume never mentions them. Add the ones you have actually done; ignore the rest."
+              description="The posting asks for these. Your resume never mentions them."
               requirements={absent}
             />
             <PhrasingList phrasing={analysis.phrasing} />

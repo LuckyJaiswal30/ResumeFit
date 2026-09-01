@@ -11,8 +11,7 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: 'ResumeFit — Know exactly why you fit',
-  description:
-    'See which requirements your resume actually meets, with the line that proves each one.',
+  description: 'See which requirements your resume meets, and the line that proves each one.',
 }
 
 export const viewport: Viewport = {

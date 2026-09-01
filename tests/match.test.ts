@@ -133,7 +133,7 @@ describe('grounding', () => {
     assert.equal(out.coverage, 'missing')
     assert.equal(out.evidenceVerified, false)
     assert.equal(out.evidence, 'Figma')
-    assert.match(out.note, /nothing in your experience/i)
+    assert.match(out.note, /no work backs it up/i)
   })
 
   it('separates a claim it could not place from one never mentioned', () => {
@@ -152,7 +152,7 @@ describe('grounding', () => {
       requirement({ coverage: 'strong', label: 'Kubernetes', evidence: 'Ran clusters at scale' }),
     ])
     assert.equal(out.coverage, 'partial')
-    assert.doesNotMatch(out.note, /nothing in your experience/i)
+    assert.doesNotMatch(out.note, /no work backs it up/i)
   })
 })
 

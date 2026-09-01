@@ -30,7 +30,7 @@ export default function UploadPage() {
     if (inFlightRef.current) return
     if (!file) return setError('Add your resume first.')
     if (job.trim().length < 80) {
-      return setError('That is too short to compare against. Paste the whole posting.')
+      return setError('Too short to compare. Paste the whole posting.')
     }
 
     inFlightRef.current = true
@@ -98,11 +98,10 @@ export default function UploadPage() {
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto mt-12 max-w-2xl text-center sm:mt-20">
             <h1 className="text-balance text-4xl font-semibold tracking-[-0.06em] sm:text-6xl">
-              Compare your resume to the role.
+              Compare your resume to the job.
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-              Two things and you are done: the resume you would actually send, and the posting you
-              are aiming at.
+              Add your resume and the posting. That is all it needs.
             </p>
           </div>
 
@@ -175,7 +174,7 @@ export default function UploadPage() {
                 <div>
                   <p className="text-sm font-semibold">Job description</p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    The whole thing, requirements included.
+                    All of it, requirements included.
                   </p>
                 </div>
                 <textarea
@@ -198,7 +197,7 @@ export default function UploadPage() {
             )}
             <div className="mt-8 flex flex-col-reverse gap-5 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs leading-5 text-muted-foreground">
-                Your file is read once, for this comparison, and never stored.
+                Read once for this comparison. Never stored.
               </p>
               <button
                 type="button"

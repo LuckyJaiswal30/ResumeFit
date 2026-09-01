@@ -13,19 +13,18 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-lg font-semibold text-foreground">Your documents</h2>
             <p className="mt-2">
-              Your resume and the posting are used to produce the comparison you asked for, and
-              nothing else. The file itself is never saved. The text is sent to the model that
-              writes the analysis, and the finished result is held for about an hour so running the
-              same pair again does not cost a second call. The results you see are kept in your
-              browser tab and disappear when you close it.
+              Your resume and the posting produce the comparison you asked for, and nothing else.
+              The file is never saved. Your text goes to the model that writes the analysis. The
+              result is held for about an hour, so running the same pair again costs nothing. What
+              you see stays in your browser tab and goes when you close it.
             </p>
           </section>
           <section>
             <h2 className="text-lg font-semibold text-foreground">Data minimization</h2>
             <p className="mt-2">
               There is no account and nothing to sign up for. Leave out anything a hiring manager
-              would not need, since the only thing being checked is how your experience lines up
-              with the posting.
+              would not need. The only thing checked is how your experience lines up with the
+              posting.
             </p>
           </section>
           <section>

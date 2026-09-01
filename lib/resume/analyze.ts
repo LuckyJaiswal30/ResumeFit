@@ -51,7 +51,7 @@ function keywordFindings(requirements: Requirement[], ats: AtsReport): Finding[]
         .map((item) => item.label)
         .join(
           ', ',
-        )} show up in the posting but not in your resume. Add the ones you have actually used, inside the work that proves them.`,
+        )} appear in the posting but not your resume. Add the ones you have used, inside the work that proves them.`,
       priority: 'high',
     })
   }

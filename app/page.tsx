@@ -7,19 +7,19 @@ import { ChevronDown, Menu, X } from 'lucide-react'
 const faqs = [
   [
     'What does it actually check?',
-    'It pulls the requirements out of the posting, then goes through them one at a time against your resume. A match only counts if it can find the line in your text that backs it up. Anything it cannot verify gets marked down rather than counted in your favour.',
+    'It pulls the requirements out of the posting and checks each one against your resume. A match has to quote a line from your text. Anything it cannot verify moves to your gaps.',
   ],
   [
     'What happens to my resume?',
-    'The file itself is never saved. The text goes to the model that writes the analysis, and the finished result is held for about an hour so re-running the same pair does not cost a second call. What you see lives in this browser tab and goes when you close it.',
+    'The file is never saved. Your text goes to the model that writes the analysis. The result is held for about an hour, so running the same pair again costs nothing. What you see lives in this tab and goes when you close it.',
   ],
   [
     'What can I upload?',
-    'A PDF, DOCX or plain TXT, up to 4 MB. Export it as text rather than scanning or photographing a printout, because a picture of a resume has no text to read. If a file will not parse, it will say so instead of guessing.',
+    'A PDF, DOCX or TXT, up to 4 MB. Export it as text rather than scanning a printout, because a picture has no text to read. A file that will not parse is refused, not guessed at.',
   ],
   [
     'Will it rewrite my bullets?',
-    'It suggests rewrites for a few of them, and it will not put words in your mouth. No number, employer, title or outcome appears that you did not already write. If a bullet has no measurable result, it sharpens the verb instead of inventing a metric. The edit stays yours to make.',
+    'It suggests rewrites for a few of them. No number, employer or title appears that you did not write. A bullet with no result gets a stronger verb, not an invented metric. The edit stays yours.',
   ],
 ]
 
@@ -123,8 +123,7 @@ export default function Home() {
             Know exactly why you fit.
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-            Paste a job posting and your resume. You get a score, the requirements you genuinely
-            meet, and the line from your own resume that proves each one.
+            Paste a job posting and your resume. See what matches, what does not, and why.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
             <Link
@@ -144,19 +143,19 @@ export default function Home() {
             <div className="pr-4">
               <p className="text-sm font-semibold">Quoted, not guessed</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Every match shows the line that backs it.
+                Every match quotes your resume.
               </p>
             </div>
             <div className="border-l border-border px-4">
               <p className="text-sm font-semibold">Nothing invented</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                No numbers appear that you did not write.
+                No invented numbers or claims.
               </p>
             </div>
             <div className="border-l border-border pl-4">
               <p className="text-sm font-semibold">No sign-up</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Results stay in your tab and nowhere else.
+                Results stay in your browser tab.
               </p>
             </div>
           </div>
@@ -167,25 +166,25 @@ export default function Home() {
           <div className="max-w-xl">
             <p className="text-sm font-medium text-primary">Where most resume tools stop</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
-              The feedback you wish you got before applying.
+              The feedback you wanted before applying.
             </h2>
           </div>
           <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
             {[
               [
                 '01',
-                'It reads the posting first',
-                'Requirements come out of the job you pasted, not a generic checklist. Must-haves and nice-to-haves are scored separately, so one missing bonus skill does not sink you.',
+                'Reads the posting first',
+                'Requirements come from the job you pasted, not a checklist. Must-haves and nice-to-haves score separately.',
               ],
               [
                 '02',
-                'It has to show its work',
-                'Claiming you match something requires quoting the line that proves it. A skill listed but never demonstrated gets marked down, which is usually the gap worth fixing.',
+                'Shows its work',
+                'A match has to quote the line that proves it. A skill you list but never show gets marked down.',
               ],
               [
                 '03',
-                'It will not flatter you',
-                'Suggested rewrites keep your facts intact. Nothing is padded, and a weak bullet with no result gets a sharper verb rather than a number someone made up.',
+                'Will not flatter you',
+                'Rewrites keep your facts. A weak bullet gets a stronger verb, not an invented number.',
               ],
             ].map(([n, t, d]) => (
               <article key={n} className="bg-card p-7 sm:p-9">
@@ -204,20 +203,14 @@ export default function Home() {
         <div>
           <p className="text-sm font-medium text-primary">How it works</p>
           <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
-            A clearer application in three steps.
+            Three steps, start to finish.
           </h2>
         </div>
         <div className="flex flex-col divide-y divide-border border-y border-border">
           {[
-            ['Add your resume', 'The PDF, DOCX or TXT you already send out. Nothing to reformat.'],
-            [
-              'Paste the posting',
-              'All of it, requirements included. That is what the comparison runs against.',
-            ],
-            [
-              'Read what came back',
-              'A score, what you match, what you do not, and the bullets worth another pass.',
-            ],
+            ['Add your resume', 'Upload the PDF, DOCX or TXT you already send.'],
+            ['Paste the posting', 'All of it, requirements included.'],
+            ['Read what came back', 'Your score, your gaps, and the bullets to fix.'],
           ].map(([t, d], i) => (
             <div key={t} className="grid gap-4 py-7 sm:grid-cols-[72px_1fr]">
               <span className="font-mono text-sm text-primary">0{i + 1}</span>
@@ -237,27 +230,26 @@ export default function Home() {
               What it will not do.
             </h2>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              A resume tool that agrees with you is not much use. These are the places it is built
-              to push back.
+              A tool that agrees with everything is not much use.
             </p>
           </div>
           <div className="flex flex-col divide-y divide-border border-y border-border">
             {[
               [
                 'Count a skill it cannot find',
-                'Naming a tool in your skills list is not evidence. To call something a match it has to quote the line in your experience that shows you doing it. When it cannot, the requirement drops into the gaps rather than quietly padding your score.',
+                'A skills list is not evidence. Without a line showing the work, the requirement moves to your gaps.',
               ],
               [
                 'Invent a number to make a bullet land',
-                'Rewrites keep your facts. No metric, employer, job title or outcome turns up that you did not write yourself. A bullet with no measurable result gets a stronger verb, not a percentage somebody made up.',
+                'Rewrites keep your facts. No metric or outcome appears that you did not write.',
               ],
               [
                 'Score something that is not a resume',
-                'Invoices, recipes, contracts and papers are turned away with a reason. Nothing gets run through anyway and handed a number that means nothing.',
+                'Invoices, recipes and contracts are turned away with a reason.',
               ],
               [
                 'Pretend a model read it when none did',
-                'If the written review cannot run, the page says so and falls back to comparing wording. A word match is never dressed up as a considered read.',
+                'If the review cannot run, the page says so and compares wording instead.',
               ],
             ].map(([t, d]) => (
               <div key={t} className="grid gap-4 py-7 sm:grid-cols-[72px_1fr]">

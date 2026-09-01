@@ -13,7 +13,7 @@ export function AtsReport({ ats }: { ats: AtsReportData }) {
         </p>
       </div>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Most applications are read by software before a person sees them. This is what it picks up.
+        Software reads your resume before a person does.
       </p>
       <ul className="mt-6 flex flex-col gap-3">
         {ats.checks.map((check) => (

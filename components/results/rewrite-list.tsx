@@ -7,7 +7,7 @@ export function RewriteList({ rewrites }: { rewrites: BulletRewrite[] }) {
     <section>
       <h2 className="text-xl font-semibold tracking-[-0.03em]">Bullets worth rewriting</h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Same facts, sharper wording. Nothing here adds a number or a claim you did not already make.
+        Same facts, sharper wording. Nothing added.
       </p>
       <ul className="mt-6 flex flex-col gap-3">
         {rewrites.map((rewrite) => (
