@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ReportBug } from '@/components/report-bug'
 
 export function SiteFooter() {
   return (
@@ -40,12 +41,7 @@ export function SiteFooter() {
               >
                 Contact us
               </a>
-              <a
-                href="mailto:luckyjaiswal3405@gmail.com?subject=ResumeFit%20bug%20report"
-                className="text-muted-foreground transition hover:text-foreground"
-              >
-                Report a bug
-              </a>
+              <ReportBug />
             </div>
             <div className="flex flex-col gap-3">
               <p className="font-medium text-foreground">Legal</p>
