@@ -4,6 +4,7 @@ import { ArrowLeft, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { useSyncExternalStore } from 'react'
 import { AnalysisSourceNote } from '@/components/results/analysis-source-note'
+import { SampleNote } from '@/components/results/sample-note'
 import { AtsReport } from '@/components/results/ats-report'
 import { FindingList } from '@/components/results/finding-list'
 import { FitScore } from '@/components/results/fit-score'
@@ -96,7 +97,7 @@ export default function ResultsPage() {
     )
   }
 
-  const { analysis, fileName } = session
+  const { analysis, fileName, isSample } = session
   const requirements = analysis.match.requirements
   const covered = requirements.filter((item) => item.coverage !== 'missing')
   const missing = requirements.filter((item) => item.coverage === 'missing')
@@ -128,6 +129,7 @@ export default function ResultsPage() {
 
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_360px]">
           <div className="flex flex-col gap-12">
+            {isSample && <SampleNote />}
             <AnalysisSourceNote analysis={analysis} />
             <RequirementList
               title="Where you align"
