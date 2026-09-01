@@ -123,7 +123,7 @@ export const SAMPLE_ANALYSIS: Analysis = {
         note: 'You name this, but no work backs it up.',
       },
     ],
-    summary: 'A workable match. Closing 0 required items would move it the furthest.',
+    summary: 'A workable match. What is missing sits in the nice to haves, not the requirements.',
   },
   ats: {
     score: 100,

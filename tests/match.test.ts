@@ -208,3 +208,28 @@ describe('rewrite number guard', () => {
     )
   })
 })
+
+describe('the score summary', () => {
+  it('does not offer to close zero required items', () => {
+    const mid = [
+      requirement({
+        id: 'a',
+        label: 'A',
+        coverage: 'strong',
+        evidence: 'built A',
+        evidenceVerified: true,
+      }),
+      requirement({
+        id: 'b',
+        label: 'B',
+        importance: 'preferred',
+        coverage: 'missing',
+        evidence: null,
+      }),
+    ]
+    const report = scoreRequirements(mid)
+    assert.ok(report.score >= 55 && report.score < 80, `score was ${report.score}`)
+    assert.doesNotMatch(report.summary, /Closing 0/)
+    assert.match(report.summary, /nice to have/i)
+  })
+})

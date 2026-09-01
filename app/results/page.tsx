@@ -12,6 +12,7 @@ import { FitScore } from '@/components/results/fit-score'
 import { PhrasingList } from '@/components/results/phrasing-list'
 import { RequirementList } from '@/components/results/requirement-list'
 import { RewriteList } from '@/components/results/rewrite-list'
+import { DownloadSummary } from '@/components/results/download-summary'
 import { buildPriorities } from '@/lib/resume/priorities'
 import {
   readAnalysisSession,
@@ -116,15 +117,18 @@ export default function ResultsPage() {
           <h1 className="text-balance text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">
             How your resume lines up
           </h1>
-          <div className="mt-5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <FileText className="size-4" aria-hidden="true" />
-            {fileName}
-            {analysis.model && (
-              <>
-                <span className="text-border">·</span>
-                <span className="font-mono text-xs">{analysis.model}</span>
-              </>
-            )}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <FileText className="size-4" aria-hidden="true" />
+              {fileName}
+              {analysis.model && (
+                <>
+                  <span className="text-border">·</span>
+                  <span className="font-mono text-xs">{analysis.model}</span>
+                </>
+              )}
+            </div>
+            <DownloadSummary analysis={analysis} fileName={fileName} />
           </div>
         </div>
 
