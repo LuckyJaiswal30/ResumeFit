@@ -145,11 +145,15 @@ export function groundRequirements(resume: string, requirements: Requirement[]):
     }
     const evidenceVerified = verifyEvidence(resume, requirement.evidence)
     if (evidenceVerified) return { ...requirement, evidenceVerified }
+    const coverage = downgrade(requirement.coverage)
     return {
       ...requirement,
-      coverage: downgrade(requirement.coverage),
+      coverage,
       evidenceVerified: false,
-      note: 'Nothing in your experience backs this up, so it is not counted as a match.',
+      note:
+        coverage === 'missing'
+          ? 'You mention this, but nothing in your experience shows you doing it.'
+          : 'The line meant to back this up was not in your resume, so it is scored lower.',
     }
   })
 }

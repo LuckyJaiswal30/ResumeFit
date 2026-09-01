@@ -74,6 +74,8 @@ export default function ResultsPage() {
   const requirements = analysis.match.requirements
   const covered = requirements.filter((item) => item.coverage !== 'missing')
   const missing = requirements.filter((item) => item.coverage === 'missing')
+  const claimed = missing.filter((item) => item.evidence !== null)
+  const absent = missing.filter((item) => item.evidence === null)
 
   return (
     <main className="flex-1">
@@ -107,9 +109,14 @@ export default function ResultsPage() {
               requirements={covered}
             />
             <RequirementList
-              title="What is missing"
-              description="The posting asks for these. Your resume does not show them yet."
-              requirements={missing}
+              title="Listed, but not shown"
+              description="These appear somewhere in your resume without any work behind them. A line in your experience showing you doing it is usually a smaller edit than it sounds."
+              requirements={claimed}
+            />
+            <RequirementList
+              title="Not there at all"
+              description="The posting asks for these and your resume never mentions them. Add the ones you have actually done; ignore the rest."
+              requirements={absent}
             />
             <PhrasingList phrasing={analysis.phrasing} />
             <RewriteList rewrites={analysis.rewrites} />
