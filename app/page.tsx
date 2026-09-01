@@ -120,7 +120,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl flex-col items-center px-5 pb-24 pt-20 text-center sm:px-8 sm:pb-32 sm:pt-28 lg:px-10 lg:pb-40 lg:pt-36">
           <p className="mb-7 text-sm font-medium text-primary">Before you send the application</p>
           <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.03] tracking-[-0.075em] sm:text-7xl lg:text-8xl">
-            Know exactly why you fit.
+            Know what your resume proves.
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
             Paste a job posting and your resume. See what matches, what doesn’t, and why.

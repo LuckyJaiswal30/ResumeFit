@@ -10,7 +10,7 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'ResumeFit — Know exactly why you fit',
+  title: 'ResumeFit — Know what your resume proves',
   description: 'See which requirements your resume meets, and the line that proves each one.',
 }
 
