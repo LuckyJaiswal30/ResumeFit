@@ -87,7 +87,7 @@ export default function ResultsPage() {
             </p>
             <Link
               href="/upload"
-              className="mt-8 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition hover:brightness-110 focus-visible:ring-4 focus-visible:ring-ring/30"
+              className="mt-8 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30"
             >
               Start an analysis
             </Link>

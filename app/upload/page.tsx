@@ -204,7 +204,7 @@ export default function UploadPage() {
                 type="button"
                 onClick={submit}
                 disabled={loading}
-                className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:cursor-wait disabled:opacity-70"
+                className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30 disabled:cursor-wait disabled:opacity-70"
               >
                 {loading ? `${step}...` : 'Start analysis'}{' '}
                 {!loading && <ArrowRight className="ml-2" aria-hidden="true" />}

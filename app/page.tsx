@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react'
+import { ChevronDown, Menu, X } from 'lucide-react'
 
 const faqs = [
   [
@@ -129,14 +129,13 @@ export default function Home() {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
             <Link
               href="/upload"
-              className="group inline-flex items-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_12px_30px_-12px_var(--primary)] transition duration-300 hover:brightness-110 hover:shadow-[0_18px_35px_-12px_var(--primary)]"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30"
             >
-              Check my fit{' '}
-              <ArrowUpRight className="ml-2 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              Check my fit
             </Link>
             <a
               href="#how-it-works"
-              className="text-sm font-medium text-muted-foreground underline underline-offset-4 transition hover:text-foreground"
+              className="inline-flex items-center justify-center rounded-xl border border-input bg-background px-5 py-3.5 text-sm font-semibold outline-none transition-colors hover:bg-muted focus-visible:ring-4 focus-visible:ring-ring/30"
             >
               See how it works
             </a>
