@@ -7,10 +7,12 @@ import { AnalysisSourceNote } from '@/components/results/analysis-source-note'
 import { SampleNote } from '@/components/results/sample-note'
 import { AtsReport } from '@/components/results/ats-report'
 import { FindingList } from '@/components/results/finding-list'
+import { PriorityList } from '@/components/results/priority-list'
 import { FitScore } from '@/components/results/fit-score'
 import { PhrasingList } from '@/components/results/phrasing-list'
 import { RequirementList } from '@/components/results/requirement-list'
 import { RewriteList } from '@/components/results/rewrite-list'
+import { buildPriorities } from '@/lib/resume/priorities'
 import {
   readAnalysisSession,
   subscribeToAnalysisSession,
@@ -103,6 +105,7 @@ export default function ResultsPage() {
   const missing = requirements.filter((item) => item.coverage === 'missing')
   const claimed = missing.filter((item) => item.evidence !== null)
   const absent = missing.filter((item) => item.evidence === null)
+  const priorities = buildPriorities(analysis)
 
   return (
     <main id="main" className="flex-1">
@@ -149,9 +152,10 @@ export default function ResultsPage() {
             <PhrasingList phrasing={analysis.phrasing} />
             <RewriteList rewrites={analysis.rewrites} />
             <AtsReport ats={analysis.ats} />
+            <FindingList findings={analysis.findings} />
           </div>
           <aside>
-            <FindingList findings={analysis.findings} />
+            <PriorityList actions={priorities} />
           </aside>
         </div>
       </div>
