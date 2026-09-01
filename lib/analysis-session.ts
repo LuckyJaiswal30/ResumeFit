@@ -51,11 +51,3 @@ export function subscribeToAnalysisSession(onChange: () => void) {
   window.addEventListener('storage', onChange)
   return () => window.removeEventListener('storage', onChange)
 }
-
-export function clearAnalysisSession() {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY)
-  } catch {
-    return
-  }
-}
