@@ -92,8 +92,7 @@ export async function POST(request: Request) {
       if (looksBinary(bytes)) return fail('There is no readable text in that file.')
       text = decodeText(bytes)
     } else if (name.endsWith('.docx')) {
-      if (!startsWith(bytes, 'PK\u0003\u0004'))
-        return fail('That is not really a .docx file.')
+      if (!startsWith(bytes, 'PK\u0003\u0004')) return fail('That is not really a .docx file.')
       text = (await mammoth.extractRawText({ buffer: Buffer.from(bytes) })).value
     } else if (name.endsWith('.pdf')) {
       if (!startsWith(bytes, '%PDF')) return fail('That is not really a .pdf file.')

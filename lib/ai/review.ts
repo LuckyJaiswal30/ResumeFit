@@ -63,4 +63,3 @@ ${fence('RESUME', budgeted.resume, marker)}
 ${fence('JOB POSTING', budgeted.jobDescription, marker)}`,
   })
 }
-

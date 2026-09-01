@@ -47,9 +47,7 @@ export function FitScore({
           <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
             {missing} {missing === 1 ? 'gap' : 'gaps'}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Asked for, and not evidenced yet.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Asked for, and not evidenced yet.</p>
         </div>
       </div>
     </section>

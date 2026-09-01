@@ -53,7 +53,6 @@ export const reviewSchema = z.object({
     .catch([]),
 })
 
-
 export const reviewJsonSchema = {
   type: 'object',
   additionalProperties: false,
@@ -116,4 +115,3 @@ export const reviewJsonSchema = {
   },
   required: ['requirements', 'findings', 'phrasing', 'rewrites'],
 } as const
-

@@ -8,8 +8,8 @@ export function PhrasingList({ phrasing }: { phrasing: PhrasingGap[] }) {
     <section>
       <h2 className="text-xl font-semibold tracking-[-0.03em]">Same skill, different words</h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        You did the work; the posting just calls it something else. A keyword filter would miss
-        the overlap.
+        You did the work; the posting just calls it something else. A keyword filter would miss the
+        overlap.
       </p>
       <ul className="mt-6 flex flex-col gap-3">
         {phrasing.map((gap) => (

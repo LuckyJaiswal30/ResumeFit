@@ -16,7 +16,9 @@ export async function POST(request: Request) {
   const limitHeaders = rateLimitHeaders(rate)
   if (!rate.allowed) {
     return Response.json(
-      { error: 'That is a lot of comparisons in a short space of time. Try again in a few minutes.' },
+      {
+        error: 'That is a lot of comparisons in a short space of time. Try again in a few minutes.',
+      },
       { status: 429, headers: limitHeaders },
     )
   }
