@@ -18,7 +18,7 @@ export default function UploadPage() {
 
   const addFile = (selected?: File) => {
     if (!selected) return
-    if (!/\.(pdf|docx)$/i.test(selected.name)) return setError('That has to be a PDF or DOCX.')
+    if (!/\.(pdf|docx|txt)$/i.test(selected.name)) return setError('That has to be a PDF, DOCX or TXT.')
     if (selected.size > 4 * 1024 * 1024) return setError('That file is over 4 MB. Try a smaller export.')
     setError('')
     setFile(selected)
@@ -87,9 +87,9 @@ export default function UploadPage() {
           <section className="mt-14 border-t border-border py-8 sm:mt-20 sm:py-10">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
               <div>
-                <div><p className="text-sm font-semibold">Your resume</p><p className="mt-1 text-sm text-muted-foreground">PDF or DOCX, up to 4 MB</p></div>
+                <div><p className="text-sm font-semibold">Your resume</p><p className="mt-1 text-sm text-muted-foreground">PDF, DOCX or TXT, up to 4 MB</p></div>
                 <div onDragOver={(event) => { event.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={onDrop} className={`mt-6 rounded-2xl border-2 border-dashed p-8 transition has-[input:focus-visible]:ring-4 has-[input:focus-visible]:ring-ring/30 sm:p-10 ${dragging ? 'border-primary bg-accent' : 'border-input bg-card'}`}>
-                  <input id="resume-upload" type="file" accept=".pdf,.docx" className="sr-only" onChange={(event: ChangeEvent<HTMLInputElement>) => addFile(event.target.files?.[0])} />
+                  <input id="resume-upload" type="file" accept=".pdf,.docx,.txt" className="sr-only" onChange={(event: ChangeEvent<HTMLInputElement>) => addFile(event.target.files?.[0])} />
                   {file ? <div className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-3 text-left"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent text-primary"><FileText aria-hidden="true" /></span><div className="min-w-0"><p className="truncate text-sm font-medium">{file.name}</p><p className="mt-1 text-xs text-muted-foreground">Ready to read</p></div></div><button type="button" onClick={() => setFile(null)} className="rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground" aria-label="Remove resume"><X aria-hidden="true" /></button></div> : <div className="text-center"><span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-accent text-primary"><Upload aria-hidden="true" /></span><p className="mt-4 text-sm font-medium">Drop your resume here</p><p className="mt-1 text-sm text-muted-foreground">or <label htmlFor="resume-upload" className="cursor-pointer font-medium text-primary underline underline-offset-4">browse files</label></p></div>}
                 </div>
               </div>
