@@ -33,6 +33,22 @@ configured or the call fails, the analysis falls back to comparing
 wording, and the page states that plainly rather than passing a keyword
 match off as a considered read.
 
+## Trying it without uploading anything
+
+**See an example** on the home and upload pages opens a finished
+analysis. It is real output, produced by running an invented resume
+against a real posting once and saving the response, so every section is
+populated including two skills that were claimed but never demonstrated.
+The fixture ships with the page and is read like any other result, so it
+makes no request and spends no quota.
+
+The results page also ranks what to fix first, derived from the analysis
+rather than from a second model call. A requirement you named but never
+evidenced ranks above one you never mentioned: both cost the same in
+score, but the first is a bullet you can write tonight. Suggested
+rewrites can be copied, and the whole analysis downloads as a markdown
+file, since results otherwise live only in the tab that produced them.
+
 ## The flow
 
 ```
