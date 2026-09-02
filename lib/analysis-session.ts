@@ -4,6 +4,7 @@ export type AnalysisSession = {
   analysis: Analysis
   fileName: string
   completedAt: number
+  isSample?: boolean
 }
 
 const STORAGE_KEY = 'resumefit:last-analysis'

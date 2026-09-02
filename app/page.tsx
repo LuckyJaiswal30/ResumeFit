@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { SampleLink } from '@/components/sample-link'
 import { useEffect, useState } from 'react'
 import { ChevronDown, Menu, X } from 'lucide-react'
 
@@ -142,6 +143,7 @@ export default function Home() {
             >
               See how it works
             </a>
+            <SampleLink className="rounded-sm text-sm font-medium text-muted-foreground underline underline-offset-4 outline-none transition-colors hover:text-foreground focus-visible:ring-4 focus-visible:ring-ring/30" />
           </div>
           <div className="mt-16 grid w-full max-w-2xl grid-cols-3 border-y border-border py-5 text-left sm:mt-20">
             <div className="pr-4">

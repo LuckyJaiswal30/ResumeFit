@@ -174,7 +174,9 @@ function summarize(score: number, requirements: Requirement[]) {
       : `Strong overall, though ${missingRequired.length} required item${missingRequired.length === 1 ? ' is' : 's are'} still missing.`
   }
   if (score >= 55) {
-    return `A workable match. Closing ${missingRequired.length} required item${missingRequired.length === 1 ? '' : 's'} would move it the furthest.`
+    return missingRequired.length === 0
+      ? 'A workable match. What is missing sits in the nice to haves, not the requirements.'
+      : `A workable match. Closing ${missingRequired.length} required item${missingRequired.length === 1 ? '' : 's'} would move it the furthest.`
   }
   return 'This resume doesn’t show the core requirements for the role yet.'
 }

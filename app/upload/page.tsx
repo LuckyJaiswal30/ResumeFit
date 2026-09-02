@@ -4,6 +4,7 @@ import { ChangeEvent, DragEvent, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, FileText, Upload, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { SampleLink } from '@/components/sample-link'
 import { storeAnalysisSession } from '@/lib/analysis-session'
 
 export default function UploadPage() {
@@ -196,9 +197,12 @@ export default function UploadPage() {
               </p>
             )}
             <div className="mt-8 flex flex-col-reverse gap-5 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-5 text-muted-foreground">
-                Read once for this comparison. Never stored.
-              </p>
+              <div className="flex flex-col items-start gap-1">
+                <p className="text-xs leading-5 text-muted-foreground">
+                  Read once for this comparison. Never stored.
+                </p>
+                <SampleLink className="rounded-sm text-xs font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-4 focus-visible:ring-ring/30" />
+              </div>
               <button
                 type="button"
                 onClick={submit}

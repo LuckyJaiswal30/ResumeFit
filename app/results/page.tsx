@@ -4,12 +4,16 @@ import { ArrowLeft, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { useSyncExternalStore } from 'react'
 import { AnalysisSourceNote } from '@/components/results/analysis-source-note'
+import { SampleNote } from '@/components/results/sample-note'
 import { AtsReport } from '@/components/results/ats-report'
 import { FindingList } from '@/components/results/finding-list'
+import { PriorityList } from '@/components/results/priority-list'
 import { FitScore } from '@/components/results/fit-score'
 import { PhrasingList } from '@/components/results/phrasing-list'
 import { RequirementList } from '@/components/results/requirement-list'
 import { RewriteList } from '@/components/results/rewrite-list'
+import { DownloadSummary } from '@/components/results/download-summary'
+import { buildPriorities } from '@/lib/resume/priorities'
 import {
   readAnalysisSession,
   subscribeToAnalysisSession,
@@ -96,12 +100,13 @@ export default function ResultsPage() {
     )
   }
 
-  const { analysis, fileName } = session
+  const { analysis, fileName, isSample } = session
   const requirements = analysis.match.requirements
   const covered = requirements.filter((item) => item.coverage !== 'missing')
   const missing = requirements.filter((item) => item.coverage === 'missing')
   const claimed = missing.filter((item) => item.evidence !== null)
   const absent = missing.filter((item) => item.evidence === null)
+  const priorities = buildPriorities(analysis)
 
   return (
     <main id="main" className="flex-1">
@@ -112,15 +117,14 @@ export default function ResultsPage() {
           <h1 className="text-balance text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">
             How your resume lines up
           </h1>
-          <div className="mt-5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <FileText className="size-4" aria-hidden="true" />
-            {fileName}
-            {analysis.model && (
-              <>
-                <span className="text-border">·</span>
-                <span className="font-mono text-xs">{analysis.model}</span>
-              </>
-            )}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <FileText className="size-4" aria-hidden="true" />
+              {fileName}
+              <span className="text-border">·</span>
+              <span>{analysis.source === 'ai' ? 'Full review' : 'Word match only'}</span>
+            </div>
+            <DownloadSummary analysis={analysis} fileName={fileName} />
           </div>
         </div>
 
@@ -128,6 +132,7 @@ export default function ResultsPage() {
 
         <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_360px]">
           <div className="flex flex-col gap-12">
+            {isSample && <SampleNote />}
             <AnalysisSourceNote analysis={analysis} />
             <RequirementList
               title="Where you align"
@@ -147,9 +152,10 @@ export default function ResultsPage() {
             <PhrasingList phrasing={analysis.phrasing} />
             <RewriteList rewrites={analysis.rewrites} />
             <AtsReport ats={analysis.ats} />
+            <FindingList findings={analysis.findings} />
           </div>
           <aside>
-            <FindingList findings={analysis.findings} />
+            <PriorityList actions={priorities} />
           </aside>
         </div>
       </div>

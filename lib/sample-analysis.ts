@@ -1,0 +1,200 @@
+import type { Analysis } from '@/lib/resume/types'
+
+export const SAMPLE_FILE_NAME = 'priya-raman-resume.pdf'
+
+export const SAMPLE_ANALYSIS: Analysis = {
+  source: 'ai',
+  model: 'gemini-3.5-flash-lite',
+  aiError: null,
+  match: {
+    score: 69,
+    breakdown: [
+      {
+        label: 'Required',
+        score: 92,
+        weight: 75,
+      },
+      {
+        label: 'Preferred',
+        score: 0,
+        weight: 25,
+      },
+    ],
+    requirements: [
+      {
+        id: '0-react',
+        label: 'React',
+        category: 'skill',
+        importance: 'required',
+        coverage: 'strong',
+        evidence: 'Led the migration of a React application to TypeScript across 60 screens',
+        evidenceVerified: true,
+        note: 'Your React experience is clearly demonstrated through complex migrations.',
+      },
+      {
+        id: '1-typescript',
+        label: 'TypeScript',
+        category: 'skill',
+        importance: 'required',
+        coverage: 'partial',
+        evidence: 'Strong TypeScript across a large codebase',
+        evidenceVerified: false,
+        note: 'The line meant to back this up isn’t in your resume, so it scores lower.',
+      },
+      {
+        id: '2-design-system',
+        label: 'Design system',
+        category: 'experience',
+        importance: 'required',
+        coverage: 'strong',
+        evidence: 'Built and documented a shared component library now used by five product teams.',
+        evidenceVerified: true,
+        note: 'Your shared component library directly addresses this.',
+      },
+      {
+        id: '3-automated-testing-and-ci-cd',
+        label: 'Automated testing and CI/CD',
+        category: 'skill',
+        importance: 'required',
+        coverage: 'strong',
+        evidence:
+          'Ran weekly release trains through GitHub Actions, including automated visual regression checks.',
+        evidenceVerified: true,
+        note: 'Both testing and CI/CD pipelines are well evidenced.',
+      },
+      {
+        id: '4-web-performance',
+        label: 'Web performance',
+        category: 'skill',
+        importance: 'required',
+        coverage: 'strong',
+        evidence: 'Reduced largest contentful paint from 4.1s to 1.6s by splitting bundles',
+        evidenceVerified: true,
+        note: 'Great concrete metrics shown for performance tuning.',
+      },
+      {
+        id: '5-accessibility-wcag',
+        label: 'Accessibility (WCAG)',
+        category: 'skill',
+        importance: 'required',
+        coverage: 'strong',
+        evidence: 'Developed accessible checkout forms verified against screen readers',
+        evidenceVerified: true,
+        note: 'You show strong accessibility work, though not explicitly citing WCAG 2.2.',
+      },
+      {
+        id: '6-next-js-and-ssr',
+        label: 'Next.js and SSR',
+        category: 'skill',
+        importance: 'preferred',
+        coverage: 'missing',
+        evidence: 'Next.js',
+        evidenceVerified: false,
+        note: 'You name this, but no work backs it up.',
+      },
+      {
+        id: '7-kubernetes',
+        label: 'Kubernetes',
+        category: 'skill',
+        importance: 'preferred',
+        coverage: 'missing',
+        evidence: null,
+        evidenceVerified: false,
+        note: 'Kubernetes is absent from your resume.',
+      },
+      {
+        id: '8-mentoring-junior-engineers',
+        label: 'Mentoring junior engineers',
+        category: 'experience',
+        importance: 'preferred',
+        coverage: 'missing',
+        evidence: null,
+        evidenceVerified: false,
+        note: 'No explicit mention of mentoring juniors.',
+      },
+      {
+        id: '9-graphql-at-scale',
+        label: 'GraphQL at scale',
+        category: 'skill',
+        importance: 'preferred',
+        coverage: 'missing',
+        evidence: 'GraphQL',
+        evidenceVerified: false,
+        note: 'You name this, but no work backs it up.',
+      },
+    ],
+    summary: 'A workable match. What is missing sits in the nice to haves, not the requirements.',
+  },
+  ats: {
+    score: 100,
+    checks: [
+      {
+        id: 'contact',
+        label: 'Contact details are readable',
+        passed: true,
+        detail: 'Found an email address and a phone number in real text.',
+      },
+      {
+        id: 'sections',
+        label: 'The usual section headings',
+        passed: true,
+        detail: 'Experience, education and skills are all there.',
+      },
+      {
+        id: 'bullets',
+        label: 'Bulleted achievements',
+        passed: true,
+        detail: '8 bullet points detected.',
+      },
+      {
+        id: 'length',
+        label: 'Length is in range',
+        passed: true,
+        detail: '194 words.',
+      },
+      {
+        id: 'density',
+        label: 'No wall-of-text blocks',
+        passed: true,
+        detail: 'Paragraph lengths are fine.',
+      },
+      {
+        id: 'signals',
+        label: 'Dates and profile links',
+        passed: true,
+        detail: 'Employment years and at least one profile link are there.',
+      },
+    ],
+  },
+  findings: [
+    {
+      id: '0-missing-preferred-skills',
+      title: 'Missing preferred skills',
+      detail:
+        'You do not mention Kubernetes or mentoring junior engineers, which are listed as nice-to-haves.',
+      priority: 'medium',
+    },
+    {
+      id: '1-uncontextualized-skills',
+      title: 'Uncontextualized skills',
+      detail:
+        'Next.js and GraphQL appear only in your skills block without any supporting details in your experience bullets.',
+      priority: 'low',
+    },
+  ],
+  phrasing: [
+    {
+      id: '0-accessibility-to-wcag-2-2-aa',
+      yours: 'Developed accessible checkout forms verified against screen readers',
+      posting: 'Accessibility to WCAG 2.2 AA',
+      note: 'Explicitly mentioning WCAG will help automated keyword matchers.',
+    },
+  ],
+  rewrites: [
+    {
+      original: 'Partnered with designers to move the team onto a shared Figma library.',
+      rewrite: 'Collaborated with designers to migrate the team to a shared Figma library.',
+      reason: 'Sharpened the opening verb for better professional impact.',
+    },
+  ],
+}
