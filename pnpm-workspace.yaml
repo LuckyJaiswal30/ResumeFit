@@ -1,3 +1,5 @@
+nodeLinker: hoisted
+
 minimumReleaseAgeExclude:
   - '@next/*'
   - next
