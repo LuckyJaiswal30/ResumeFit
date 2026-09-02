@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { generateJson, promptCharBudget } from './client'
-import { reviewJsonSchema, reviewSchema, rewriteJsonSchema, rewriteSchema } from './schemas'
+import { reviewJsonSchema, reviewSchema } from './schemas'
 
 function fence(label: string, body: string, marker: string) {
   return `<<<${label} ${marker}>>>\n${body}\n<<<END ${label} ${marker}>>>`
@@ -61,24 +61,5 @@ ${UNTRUSTED_NOTICE}
 ${fence('RESUME', budgeted.resume, marker)}
 
 ${fence('JOB POSTING', budgeted.jobDescription, marker)}`,
-  })
-}
-
-export async function requestBulletRewrite(bullet: string, jobDescription: string) {
-  const marker = randomUUID().slice(0, 8)
-
-  return generateJson({
-    validator: rewriteSchema,
-    schema: rewriteJsonSchema as unknown as Record<string, unknown>,
-    timeoutScale: 0.7,
-    prompt: `Rewrite one resume bullet so it reads more clearly and speaks to the job posting.
-
-Keep every fact. Add no number, percentage, metric, technology, employer, job title, team size or outcome that is not already in the original. If there is no measurable result, do not invent one: sharpen the verb and make the action specific. One sentence that fits on a resume line. The rationale says in one sentence what changed and why.
-
-${UNTRUSTED_NOTICE}
-
-${fence('BULLET', bullet, marker)}
-
-${fence('JOB POSTING', clip(jobDescription, Math.round(promptCharBudget() * 0.4)), marker)}`,
   })
 }

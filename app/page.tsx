@@ -1,28 +1,288 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ChevronDown, Menu, X } from 'lucide-react'
+
+const SECTIONS = [
+  ['#features', 'Features'],
+  ['#how-it-works', 'How it works'],
+  ['#limits', 'Limits'],
+  ['#faq', 'FAQ'],
+]
 
 const faqs = [
-  ['What does ResumeFit analyze?', 'ResumeFit compares the language, experience, and requirements in your resume with the specific role you want. It highlights evidence you already have and the gaps worth addressing.'],
-  ['Is my resume stored?', 'No. Your resume is used to generate your analysis and is not used to train models. We keep the experience private and focused on your application.'],
-  ['What file types can I upload?', 'You can upload a PDF or DOCX file. For the clearest analysis, use a text-based resume rather than a scanned image.'],
-  ['Does ResumeFit rewrite my resume?', 'It gives you specific, role-relevant recommendations so you can make the final edits with your own voice and judgment.'],
+  [
+    'What does it actually check?',
+    'It pulls the requirements out of the posting and checks each one against your resume. A match has to quote a line from your text, or it moves to your gaps.',
+  ],
+  [
+    'What happens to my resume?',
+    'The file is never saved. Your text goes to the model that writes the analysis, and the result is cached for an hour so a repeat costs nothing. What you see lives in this tab and goes when you close it.',
+  ],
+  [
+    'What can I upload?',
+    'A PDF, DOCX or TXT, up to 4 MB. Export it as text, not a scan, since a picture has no text to read. A file that won’t parse is refused, not guessed at.',
+  ],
+  [
+    'Will it rewrite my bullets?',
+    'It suggests rewrites for a few of them. No number, employer or title appears that you didn’t write. A bullet with no result gets a stronger verb. The edit stays yours.',
+  ],
 ]
 
 function FAQ() {
   const [open, setOpen] = useState<number | null>(0)
-  return <div className="flex flex-col divide-y divide-border border-y border-border">{faqs.map(([q, a], i) => <div key={q}><button aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)} className="flex w-full items-center justify-between gap-6 py-6 text-left text-base font-medium transition hover:text-primary"><span>{q}</span><ChevronDown className={`size-5 shrink-0 text-muted-foreground transition-transform ${open === i ? 'rotate-180' : ''}`} /></button><div className={`grid transition-[grid-template-rows] duration-300 ${open === i ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}><p className="min-h-0 overflow-hidden pr-10 text-sm leading-7 text-muted-foreground">{a}</p></div></div>)}</div>
+  return (
+    <div className="flex flex-col divide-y divide-border border-y border-border">
+      {faqs.map(([q, a], i) => (
+        <div key={q}>
+          <button
+            aria-expanded={open === i}
+            onClick={() => setOpen(open === i ? null : i)}
+            className="flex w-full items-center justify-between gap-6 py-6 text-left text-base font-medium transition hover:text-primary"
+          >
+            <span>{q}</span>
+            <ChevronDown
+              className={`size-5 shrink-0 text-muted-foreground transition-transform ${open === i ? 'rotate-180' : ''}`}
+            />
+          </button>
+          <div
+            className={`grid transition-[grid-template-rows] duration-300 ${open === i ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+          >
+            <p className="min-h-0 overflow-hidden pr-10 text-sm leading-7 text-muted-foreground">
+              {a}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false)
-  return <main className="flex-1 bg-background text-foreground">
-    <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur-xl"><div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10"><Link href="/" className="text-lg font-semibold tracking-[-0.05em]">resumefit<span className="text-primary">.</span></Link><nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex"><a href="#features" className="transition hover:text-foreground">Features</a><a href="#how-it-works" className="transition hover:text-foreground">How it works</a><a href="#faq" className="transition hover:text-foreground">FAQ</a></nav><div className="hidden items-center md:flex"><a href="mailto:luckyjaiswal3405@gmail.com" className="text-sm text-muted-foreground transition hover:text-foreground">Contact</a></div><button aria-label={menuOpen ? 'Close menu' : 'Open menu'} className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button></div>{menuOpen && <nav className="flex flex-col gap-5 border-t border-border px-5 py-6 text-sm md:hidden"><a href="#features" onClick={() => setMenuOpen(false)}>Features</a><a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a><a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a><a href="mailto:luckyjaiswal3405@gmail.com" onClick={() => setMenuOpen(false)} className="text-muted-foreground">Contact support</a></nav>}</header>
-    <section className="relative overflow-hidden border-b border-border"><div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"/><div className="mx-auto flex max-w-5xl flex-col items-center px-5 pb-24 pt-20 text-center sm:px-8 sm:pb-32 sm:pt-28 lg:px-10 lg:pb-40 lg:pt-36"><p className="mb-7 text-sm font-medium text-primary">A better way to prepare for the role you want</p><h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.03] tracking-[-0.075em] sm:text-7xl lg:text-8xl">Know exactly why you fit.</h1><p className="mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">ResumeFit reads your resume against a real job description, then turns the comparison into clear, confident next steps.</p><div className="mt-10 flex flex-wrap items-center justify-center gap-5"><Link href="/upload" className="group inline-flex items-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground shadow-[0_12px_30px_-12px_var(--primary)] transition duration-300 hover:brightness-110 hover:shadow-[0_18px_35px_-12px_var(--primary)]">Check my fit <ArrowUpRight className="ml-2 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></Link><a href="#how-it-works" className="text-sm font-medium text-muted-foreground underline underline-offset-4 transition hover:text-foreground">See how it works</a></div><div className="mt-16 grid w-full max-w-2xl grid-cols-3 border-y border-border py-5 text-left sm:mt-20"><div className="pr-4"><p className="text-sm font-semibold">Role-specific</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Feedback for the job, not just the resume.</p></div><div className="border-l border-border px-4"><p className="text-sm font-semibold">Plain language</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Understand what to change and why.</p></div><div className="border-l border-border pl-4"><p className="text-sm font-semibold">Private by design</p><p className="mt-1 text-xs leading-5 text-muted-foreground">No account required to get started.</p></div></div></div></section>
-    <section id="features" className="border-y border-border bg-card"><div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10"><div className="max-w-xl"><p className="text-sm font-medium text-primary">Less guessing, more signal</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">The feedback you wish you got before applying.</h2></div><div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">{[['01','Role-specific','Generic resume advice is easy to ignore. See what this role actually asks for and where your resume meets it.'],['02','Actionable','Get practical recommendations you can apply immediately, from missing keywords to underplayed experience.'],['03','Human-readable','No mysterious score. Every insight is explained in plain language so you can make the final call.']].map(([n,t,d]) => <article key={n} className="bg-card p-7 sm:p-9"><span className="font-mono text-xs text-muted-foreground">{n}</span><h3 className="mt-12 text-xl font-semibold tracking-[-0.03em]">{t}</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">{d}</p></article>)}</div></div></section>
-    <section id="how-it-works" className="mx-auto grid max-w-7xl gap-14 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:px-10 lg:py-32"><div><p className="text-sm font-medium text-primary">How it works</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">A clearer application in three steps.</h2></div><div className="flex flex-col divide-y divide-border border-y border-border">{[['Upload your resume','Add the PDF or DOCX you already use.'],['Add the opportunity','Paste the job description for the role in front of you.'],['Get your plan','Review your fit, gaps, and the changes worth making first.']].map(([t,d], i) => <div key={t} className="grid gap-4 py-7 sm:grid-cols-[72px_1fr]"><span className="font-mono text-sm text-primary">0{i + 1}</span><div><h3 className="text-lg font-semibold tracking-[-0.02em]">{t}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{d}</p></div></div>)}</div></section>
-    <section id="faq" className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:px-10"><div><p className="text-sm font-medium text-primary">Questions, answered</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">Before you begin.</h2><p className="mt-4 text-sm leading-7 text-muted-foreground">Still unsure? <a href="mailto:luckyjaiswal3405@gmail.com" className="underline underline-offset-4">Talk to us.</a></p></div><FAQ /></section>
-  </main>
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [menuOpen])
+  return (
+    <main id="main" className="flex-1 bg-background text-foreground">
+      <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:px-10">
+          <Link
+            href="/"
+            className="rounded-sm text-lg font-semibold tracking-[-0.05em] outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
+          >
+            resumefit<span className="text-primary">.</span>
+          </Link>
+          <nav
+            aria-label="Page sections"
+            className="hidden items-center gap-8 text-sm text-muted-foreground md:flex"
+          >
+            {SECTIONS.map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                className="rounded-sm outline-none transition-colors hover:text-foreground focus-visible:ring-4 focus-visible:ring-ring/30"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+          <button
+            type="button"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            className="rounded-sm outline-none focus-visible:ring-4 focus-visible:ring-ring/30 md:hidden"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+          </button>
+        </div>
+        {menuOpen && (
+          <nav
+            id="mobile-nav"
+            aria-label="Page sections"
+            className="flex flex-col gap-5 border-t border-border px-5 py-6 text-sm md:hidden"
+          >
+            {SECTIONS.map(([href, label]) => (
+              <a key={href} href={href} onClick={() => setMenuOpen(false)}>
+                {label}
+              </a>
+            ))}
+          </nav>
+        )}
+      </header>
+      <section className="relative overflow-hidden border-b border-border">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+        <div className="mx-auto flex max-w-5xl flex-col items-center px-5 pb-24 pt-20 text-center sm:px-8 sm:pb-32 sm:pt-28 lg:px-10 lg:pb-40 lg:pt-36">
+          <p className="mb-7 text-sm font-medium text-primary">Before you send the application</p>
+          <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.03] tracking-[-0.075em] sm:text-7xl lg:text-8xl">
+            Know what your resume proves.
+          </h1>
+          <p className="mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+            Paste a job posting and your resume. See what matches, what doesn’t, and why.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
+            <Link
+              href="/upload"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30"
+            >
+              Check my fit
+            </Link>
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center justify-center rounded-xl border border-input bg-background px-5 py-3.5 text-sm font-semibold outline-none transition-colors hover:bg-muted focus-visible:ring-4 focus-visible:ring-ring/30"
+            >
+              See how it works
+            </a>
+          </div>
+          <div className="mt-16 grid w-full max-w-2xl grid-cols-3 border-y border-border py-5 text-left sm:mt-20">
+            <div className="pr-4">
+              <p className="text-sm font-semibold">Quoted, not guessed</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Every match quotes your resume.
+              </p>
+            </div>
+            <div className="border-l border-border px-4">
+              <p className="text-sm font-semibold">Nothing invented</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                No invented numbers or claims.
+              </p>
+            </div>
+            <div className="border-l border-border pl-4">
+              <p className="text-sm font-semibold">No sign-up</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                Results stay in your browser tab.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="features" className="border-y border-border bg-card">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10">
+          <div className="max-w-xl">
+            <p className="text-sm font-medium text-primary">Where most resume tools stop</p>
+            <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+              The feedback you wanted before applying.
+            </h2>
+          </div>
+          <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3">
+            {[
+              [
+                '01',
+                'Reads the posting first',
+                'Requirements come from the job you pasted, not a checklist. Must-haves and nice-to-haves score separately.',
+              ],
+              [
+                '02',
+                'Shows its work',
+                'A match has to quote the line that proves it. A skill you list but never show gets marked down.',
+              ],
+              [
+                '03',
+                'Won’t flatter you',
+                'Rewrites keep your facts. A weak bullet gets a stronger verb, not an invented number.',
+              ],
+            ].map(([n, t, d]) => (
+              <article key={n} className="bg-card p-7 sm:p-9">
+                <span className="font-mono text-xs text-muted-foreground">{n}</span>
+                <h3 className="mt-12 text-xl font-semibold tracking-[-0.03em]">{t}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{d}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section
+        id="how-it-works"
+        className="mx-auto grid max-w-7xl gap-14 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:px-10 lg:py-32"
+      >
+        <div>
+          <p className="text-sm font-medium text-primary">How it works</p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+            It takes three steps.
+          </h2>
+        </div>
+        <div className="flex flex-col divide-y divide-border border-y border-border">
+          {[
+            ['Add your resume', 'Upload the PDF, DOCX or TXT you already send.'],
+            ['Paste the posting', 'All of it, requirements included.'],
+            ['Read what came back', 'Your score, your gaps, and the bullets to fix.'],
+          ].map(([t, d], i) => (
+            <div key={t} className="grid gap-4 py-7 sm:grid-cols-[72px_1fr]">
+              <span className="font-mono text-sm text-primary">0{i + 1}</span>
+              <div>
+                <h3 className="text-lg font-semibold tracking-[-0.02em]">{t}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section id="limits" className="border-y border-border bg-card">
+        <div className="mx-auto grid max-w-7xl gap-14 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:px-10">
+          <div>
+            <p className="text-sm font-medium text-primary">On purpose</p>
+            <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em] sm:text-4xl">
+              What it won’t do.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">
+              A tool that agrees with everything isn’t much use.
+            </p>
+          </div>
+          <div className="flex flex-col divide-y divide-border border-y border-border">
+            {[
+              [
+                'Count a skill it can’t find',
+                'A skills list isn’t evidence. Without a line showing the work, the requirement moves to your gaps.',
+              ],
+              [
+                'Invent a number to make a bullet land',
+                'Rewrites keep your facts. No metric or outcome appears that you didn’t write.',
+              ],
+              [
+                'Score something that isn’t a resume',
+                'Invoices, recipes and contracts are turned away with a reason.',
+              ],
+              [
+                'Pretend a model read it when none did',
+                'If the review can’t run, the page says so and compares wording instead.',
+              ],
+            ].map(([t, d]) => (
+              <div key={t} className="grid gap-4 py-7 sm:grid-cols-[72px_1fr]">
+                <X className="mt-1 size-4 text-muted-foreground" aria-hidden="true" />
+                <div>
+                  <h3 className="text-lg font-semibold tracking-[-0.02em]">{t}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{d}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section
+        id="faq"
+        className="mx-auto grid max-w-7xl gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[.7fr_1.3fr] lg:px-10"
+      >
+        <div>
+          <p className="text-sm font-medium text-primary">Worth knowing first</p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-[-0.05em]">Before you start.</h2>
+          <p className="mt-4 text-sm leading-7 text-muted-foreground">
+            Something not covered here?{' '}
+            <a href="mailto:luckyjaiswal3405@gmail.com" className="underline underline-offset-4">
+              Ask me.
+            </a>
+          </p>
+        </div>
+        <FAQ />
+      </section>
+    </main>
+  )
 }

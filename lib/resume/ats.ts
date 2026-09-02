@@ -51,21 +51,21 @@ export function buildAtsReport(resume: string): AtsReport {
       passed: hasEmail && hasPhone,
       detail:
         hasEmail && hasPhone
-          ? 'Found an email address and a phone number in selectable text.'
+          ? 'Found an email address and a phone number in real text.'
           : hasEmail
-            ? 'Found an email address but no phone number.'
+            ? 'Found an email address, but no phone number.'
             : hasPhone
-              ? 'Found a phone number but no email address.'
-              : 'No email address or phone number was found in the text layer.',
+              ? 'Found a phone number, but no email address.'
+              : 'No email address or phone number turned up in the text.',
     },
     {
       id: 'sections',
-      label: 'Standard section headings',
+      label: 'The usual section headings',
       weight: 20,
       passed: foundSections.length === SECTION_PATTERNS.length,
       detail:
         foundSections.length === SECTION_PATTERNS.length
-          ? 'Experience, education, and skills headings are all present.'
+          ? 'Experience, education and skills are all there.'
           : `Found ${foundSections.map((section) => section.label).join(', ') || 'none'}. Parsers look for experience, education, and skills.`,
     },
     {
@@ -76,7 +76,7 @@ export function buildAtsReport(resume: string): AtsReport {
       detail:
         bullets.length >= 4
           ? `${bullets.length} bullet points detected.`
-          : `Only ${bullets.length} bullet point${bullets.length === 1 ? '' : 's'} detected. Bulleted lines parse more reliably than paragraphs.`,
+          : `Only ${bullets.length} bullet point${bullets.length === 1 ? '' : 's'} detected. Bulleted lines come through more reliably than paragraphs.`,
     },
     {
       id: 'length',
@@ -85,9 +85,9 @@ export function buildAtsReport(resume: string): AtsReport {
       passed: wordCount >= 180 && wordCount <= 1100,
       detail:
         wordCount < 180
-          ? `${wordCount} words is short for a full application.`
+          ? `${wordCount} words is on the short side for a full application.`
           : wordCount > 1100
-            ? `${wordCount} words is long enough that key detail gets buried.`
+            ? `${wordCount} words is long enough that the good parts get buried.`
             : `${wordCount} words.`,
     },
     {
@@ -97,8 +97,8 @@ export function buildAtsReport(resume: string): AtsReport {
       passed: longestParagraph <= 130,
       detail:
         longestParagraph <= 130
-          ? 'Paragraph lengths are reasonable.'
-          : `One block runs ${longestParagraph} words. Split it into bullets so achievements are scannable.`,
+          ? 'Paragraph lengths are fine.'
+          : `One block runs ${longestParagraph} words. Break it into bullets so it can be skimmed.`,
     },
     {
       id: 'signals',
@@ -107,10 +107,10 @@ export function buildAtsReport(resume: string): AtsReport {
       passed: YEAR.test(resume) && PROFILE_LINK.test(resume),
       detail:
         YEAR.test(resume) && PROFILE_LINK.test(resume)
-          ? 'Employment years and at least one profile link are present.'
+          ? 'Employment years and at least one profile link are there.'
           : YEAR.test(resume)
-            ? 'Employment years are present, but no LinkedIn, GitHub, or portfolio link was found.'
-            : 'No employment years were found, which makes it hard to place your timeline.',
+            ? 'Employment years are there, but no LinkedIn, GitHub or portfolio link.'
+            : 'No employment years turned up, which makes your timeline hard to place.',
     },
   ]
 

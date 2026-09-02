@@ -10,8 +10,8 @@ const geist = Geist({
 })
 
 export const metadata: Metadata = {
-  title: 'ResumeFit — Know exactly why you fit',
-  description: 'Clear, specific resume feedback for the job you want.',
+  title: 'ResumeFit — Know what your resume proves',
+  description: 'See which requirements your resume meets, and the line that proves each one.',
 }
 
 export const viewport: Viewport = {
@@ -27,6 +27,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={geist.variable}>
       <body className="flex min-h-screen flex-col antialiased">
+        <a
+          href="#main"
+          className="sr-only rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground focus:not-sr-only focus:absolute focus:left-5 focus:top-5 focus:z-50"
+        >
+          Skip to content
+        </a>
         {children}
         <SiteFooter />
       </body>

@@ -13,11 +13,14 @@ export function AtsReport({ ats }: { ats: AtsReportData }) {
         </p>
       </div>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Applicant tracking systems read plain text before a person ever does.
+        Software reads your resume before a person does.
       </p>
       <ul className="mt-6 flex flex-col gap-3">
         {ats.checks.map((check) => (
-          <li key={check.id} className="flex items-start gap-3 rounded-lg border border-border p-4 text-sm">
+          <li
+            key={check.id}
+            className="flex items-start gap-3 rounded-lg border border-border p-4 text-sm"
+          >
             {check.passed ? (
               <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
             ) : (

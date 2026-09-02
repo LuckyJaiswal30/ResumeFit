@@ -28,7 +28,7 @@ export function promptCharBudget() {
 
 function describeStatus(provider: ProviderName, status: number) {
   if (status === 401 || status === 403) return `the ${provider} API key was rejected`
-  if (status === 404) return `the configured ${provider} model was not found`
+  if (status === 404) return `the configured ${provider} model wasn’t found`
   if (status === 413) return "the resume and posting were too long for this provider's limit"
   if (status === 429) return `${provider} is rate limiting right now`
   if (status >= 500) return `${provider} is having trouble`
@@ -156,7 +156,7 @@ export async function generateJson<T>(options: {
   if (!response) {
     throw new AiRequestError(
       lastError instanceof Error && lastError.name === 'TimeoutError'
-        ? `${provider.name} did not respond in time`
+        ? `${provider.name} didn’t respond in time`
         : `${provider.name} could not be reached`,
     )
   }

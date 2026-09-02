@@ -53,11 +53,6 @@ export const reviewSchema = z.object({
     .catch([]),
 })
 
-export const rewriteSchema = z.object({
-  rewrite: text(400, 10),
-  rationale: text(240, 0),
-})
-
 export const reviewJsonSchema = {
   type: 'object',
   additionalProperties: false,
@@ -119,14 +114,4 @@ export const reviewJsonSchema = {
     },
   },
   required: ['requirements', 'findings', 'phrasing', 'rewrites'],
-} as const
-
-export const rewriteJsonSchema = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    rewrite: { type: 'string' },
-    rationale: { type: 'string' },
-  },
-  required: ['rewrite', 'rationale'],
 } as const

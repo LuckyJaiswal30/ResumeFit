@@ -41,28 +41,54 @@ export default function ResultsPage() {
 
   if (session === undefined) {
     return (
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <ResultsHeader />
+        <div
+          className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16"
+          role="status"
+          aria-label="Loading your analysis"
+        >
+          <div className="mb-12 flex flex-col gap-4">
+            <div className="h-4 w-28 rounded bg-muted" />
+            <div className="h-10 w-2/3 rounded bg-muted sm:h-12" />
+            <div className="h-4 w-48 rounded bg-muted" />
+          </div>
+          <div className="grid gap-6 border-y border-border py-8 md:grid-cols-[260px_1fr] md:gap-12">
+            <div className="flex flex-col gap-4">
+              <div className="h-4 w-20 rounded bg-muted" />
+              <div className="h-16 w-32 rounded bg-muted" />
+              <div className="h-4 w-full rounded bg-muted" />
+            </div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="h-32 rounded-xl bg-muted" />
+              <div className="h-32 rounded-xl bg-muted" />
+            </div>
+          </div>
+          <div className="mt-12 flex flex-col gap-3">
+            <div className="h-6 w-40 rounded bg-muted" />
+            <div className="h-16 rounded-lg bg-muted" />
+            <div className="h-16 rounded-lg bg-muted" />
+          </div>
+        </div>
       </main>
     )
   }
 
   if (!session) {
     return (
-      <main className="flex-1">
+      <main id="main" className="flex-1">
         <ResultsHeader />
         <div className="mx-auto max-w-5xl px-5 py-24 sm:px-8">
           <div className="mx-auto max-w-md text-center">
-            <h1 className="text-3xl font-semibold tracking-[-0.05em]">No analysis to show</h1>
+            <h1 className="text-3xl font-semibold tracking-[-0.05em]">Nothing here yet</h1>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              Results live in this browser tab only, so they are gone after a refresh or a new tab.
-              Run the comparison again and it will be here.
+              Results live only in the tab that made them. Run the comparison again.
             </p>
             <Link
               href="/upload"
-              className="mt-8 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition hover:brightness-110 focus-visible:ring-4 focus-visible:ring-ring/30"
+              className="mt-8 inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30"
             >
-              Start an analysis
+              Start a comparison
             </Link>
           </div>
         </div>
@@ -74,9 +100,11 @@ export default function ResultsPage() {
   const requirements = analysis.match.requirements
   const covered = requirements.filter((item) => item.coverage !== 'missing')
   const missing = requirements.filter((item) => item.coverage === 'missing')
+  const claimed = missing.filter((item) => item.evidence !== null)
+  const absent = missing.filter((item) => item.evidence === null)
 
   return (
-    <main className="flex-1">
+    <main id="main" className="flex-1">
       <ResultsHeader />
       <div className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16">
         <div className="mb-12">
@@ -103,13 +131,18 @@ export default function ResultsPage() {
             <AnalysisSourceNote analysis={analysis} />
             <RequirementList
               title="Where you align"
-              description="The posting asks for these and your resume backs them up."
+              description="The posting asks for these. Your resume shows them."
               requirements={covered}
             />
             <RequirementList
-              title="What is missing"
-              description="Asked for in the posting, but not visible in your resume yet."
-              requirements={missing}
+              title="Listed, but not shown"
+              description="You name these, but no work backs them up. One line usually fixes it."
+              requirements={claimed}
+            />
+            <RequirementList
+              title="Not there at all"
+              description="The posting asks for these. Your resume never mentions them."
+              requirements={absent}
             />
             <PhrasingList phrasing={analysis.phrasing} />
             <RewriteList rewrites={analysis.rewrites} />

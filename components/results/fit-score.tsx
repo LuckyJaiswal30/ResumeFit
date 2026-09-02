@@ -38,18 +38,14 @@ export function FitScore({
           <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
             {covered} {covered === 1 ? 'match' : 'matches'}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Requirements your resume already backs up.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Backed by a line in your resume.</p>
         </div>
         <div className="rounded-xl bg-secondary p-5">
           <p className="text-sm font-medium text-secondary-foreground">Worth improving</p>
           <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
             {missing} {missing === 1 ? 'gap' : 'gaps'}
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Asked for in the posting, not visible yet.
-          </p>
+          <p className="mt-1 text-sm text-muted-foreground">Asked for, not shown yet.</p>
         </div>
       </div>
     </section>

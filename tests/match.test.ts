@@ -125,6 +125,35 @@ describe('grounding', () => {
     ])
     assert.equal(out.evidence, null)
   })
+
+  it('keeps the unfound quote when a partial claim drops to missing', () => {
+    const [out] = groundRequirements(RESUME, [
+      requirement({ coverage: 'partial', label: 'Figma', evidence: 'Figma' }),
+    ])
+    assert.equal(out.coverage, 'missing')
+    assert.equal(out.evidenceVerified, false)
+    assert.equal(out.evidence, 'Figma')
+    assert.match(out.note, /no work backs it up/i)
+  })
+
+  it('separates a claim it could not place from one never mentioned', () => {
+    const [claimed, absent] = groundRequirements(RESUME, [
+      requirement({ coverage: 'partial', label: 'Figma', evidence: 'Figma' }),
+      requirement({ coverage: 'missing', label: 'Kubernetes', evidence: null }),
+    ])
+    assert.equal(claimed.coverage, 'missing')
+    assert.notEqual(claimed.evidence, null)
+    assert.equal(absent.coverage, 'missing')
+    assert.equal(absent.evidence, null)
+  })
+
+  it('does not tell someone nothing backs a claim it still counts', () => {
+    const [out] = groundRequirements(RESUME, [
+      requirement({ coverage: 'strong', label: 'Kubernetes', evidence: 'Ran clusters at scale' }),
+    ])
+    assert.equal(out.coverage, 'partial')
+    assert.doesNotMatch(out.note, /no work backs it up/i)
+  })
 })
 
 describe('scoring', () => {

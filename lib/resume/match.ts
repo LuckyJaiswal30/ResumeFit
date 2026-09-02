@@ -145,11 +145,15 @@ export function groundRequirements(resume: string, requirements: Requirement[]):
     }
     const evidenceVerified = verifyEvidence(resume, requirement.evidence)
     if (evidenceVerified) return { ...requirement, evidenceVerified }
+    const coverage = downgrade(requirement.coverage)
     return {
       ...requirement,
-      coverage: downgrade(requirement.coverage),
+      coverage,
       evidenceVerified: false,
-      note: 'The supporting line could not be located in the resume text, so this is scored conservatively.',
+      note:
+        coverage === 'missing'
+          ? 'You name this, but no work backs it up.'
+          : 'The line meant to back this up isn’t in your resume, so it scores lower.',
     }
   })
 }
@@ -166,13 +170,13 @@ function summarize(score: number, requirements: Requirement[]) {
   )
   if (score >= 80) {
     return missingRequired.length === 0
-      ? 'Your resume covers the requirements this role asks for.'
-      : `Strong overall, but ${missingRequired.length} required item${missingRequired.length === 1 ? ' is' : 's are'} still missing.`
+      ? 'Your resume covers what this role asks for.'
+      : `Strong overall, though ${missingRequired.length} required item${missingRequired.length === 1 ? ' is' : 's are'} still missing.`
   }
   if (score >= 55) {
-    return `A workable match. ${missingRequired.length} required item${missingRequired.length === 1 ? '' : 's'} would move this the furthest.`
+    return `A workable match. Closing ${missingRequired.length} required item${missingRequired.length === 1 ? '' : 's'} would move it the furthest.`
   }
-  return 'This resume does not yet show the core requirements for the role.'
+  return 'This resume doesn’t show the core requirements for the role yet.'
 }
 
 export function scoreRequirements(requirements: Requirement[]): MatchReport {
@@ -226,8 +230,8 @@ export function keywordRequirements(resume: string, jobDescription: string): Req
       evidence: null,
       evidenceVerified: false,
       note: covered
-        ? 'This term appears in both the job description and your resume.'
-        : 'This term appears in the job description but not in your resume.',
+        ? 'This word appears in both the posting and your resume.'
+        : 'The posting uses this word. Your resume doesn’t.',
     }
   })
 }

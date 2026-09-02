@@ -30,10 +30,10 @@ function slug(value: string) {
 }
 
 const ATS_PROBLEM: Record<string, string> = {
-  contact: 'Contact details are hard to read',
-  sections: 'Standard section headings are missing',
-  bullets: 'Not enough bulleted achievements',
-  length: 'Length works against you',
+  contact: 'Your contact details are hard to find',
+  sections: 'The usual section headings are missing',
+  bullets: 'Too few bulleted achievements',
+  length: 'The length is working against you',
   density: 'One block is a wall of text',
   signals: 'Dates or profile links are missing',
 }
@@ -45,13 +45,13 @@ function keywordFindings(requirements: Requirement[], ats: AtsReport): Finding[]
   if (missing.length) {
     findings.push({
       id: 'missing-terms',
-      title: 'Terms from the posting are absent',
+      title: 'Words from the posting are missing',
       detail: `${missing
         .slice(0, 5)
         .map((item) => item.label)
         .join(
           ', ',
-        )} appear in the job description but not in your resume. Add the ones you have actually used, inside the work that proves them.`,
+        )} appear in the posting but not your resume. Add the ones you have used, inside the work that proves them.`,
       priority: 'high',
     })
   }

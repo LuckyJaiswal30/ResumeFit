@@ -16,7 +16,9 @@ export async function POST(request: Request) {
   const limitHeaders = rateLimitHeaders(rate)
   if (!rate.allowed) {
     return Response.json(
-      { error: 'You have run a lot of analyses in a short window. Try again in a few minutes.' },
+      {
+        error: 'That’s a lot of comparisons in a short space of time. Try again in a few minutes.',
+      },
       { status: 429, headers: limitHeaders },
     )
   }
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
     payload = requestSchema.parse(await request.json())
   } catch {
     return Response.json(
-      { error: 'Add both a resume and a job description, at least 80 characters each.' },
+      { error: 'Send both a resume and a posting, at least 80 characters each.' },
       { status: 400, headers: limitHeaders },
     )
   }
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
     return Response.json({ analysis }, { headers: limitHeaders })
   } catch {
     return Response.json(
-      { error: 'The analysis did not finish. Try again.' },
+      { error: 'The comparison didn’t finish. Try again.' },
       { status: 500, headers: limitHeaders },
     )
   }
