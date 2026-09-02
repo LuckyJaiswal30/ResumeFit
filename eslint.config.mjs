@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import globals from 'globals'
 import react from '@eslint-react/eslint-plugin'
 import next from '@next/eslint-plugin-next'
 import { defineConfig, globalIgnores } from 'eslint/config'
@@ -9,6 +10,10 @@ export default defineConfig([
   globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
   js.configs.recommended,
   tseslint.configs.recommended,
+  {
+    files: ['*.mjs', 'scripts/**/*.mjs', 'tests/**/*.{ts,mjs}'],
+    languageOptions: { globals: globals.nodeBuiltin },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
