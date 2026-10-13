@@ -77,3 +77,17 @@ describe('ats report', () => {
     assert.ok(buildAtsReport('hello').score <= 20)
   })
 })
+
+describe('the wall-of-text check on extracted PDF text', () => {
+  const pdfLike = RESUME.replace(/\n\s*\n/g, '\n')
+
+  it('does not mistake a resume with no blank lines for one long block', () => {
+    const density = buildAtsReport(pdfLike).checks.find((c) => c.id === 'density')
+    assert.equal(density?.passed, true, density?.detail)
+  })
+
+  it('still catches a long paragraph wrapped over several lines', () => {
+    const wrapped = `${pdfLike}\n${'a long paragraph wrapped over lines with plenty of words in it\n'.repeat(14)}`
+    assert.equal(buildAtsReport(wrapped).checks.find((c) => c.id === 'density')?.passed, false)
+  })
+})

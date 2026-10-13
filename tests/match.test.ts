@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  MAX_ADDED_WORDS,
+  addedContentWords,
   addsUnsupportedNumber,
   groundRequirements,
   keywordRequirements,
@@ -231,5 +233,168 @@ describe('the score summary', () => {
     assert.ok(report.score >= 55 && report.score < 80, `score was ${report.score}`)
     assert.doesNotMatch(report.summary, /Closing 0/)
     assert.match(report.summary, /nice to have/i)
+  })
+})
+
+describe('the word-only mode reads the posting the way a person would', () => {
+  const posting = `Backend Engineer
+Requirements
+- Python and AWS
+- Experience with Docker
+Nice to have
+- Kubernetes
+- Terraform
+Familiarity with Redis is a plus.`
+
+  const resume = `Sam Lee
+sam@example.com
+
+Experience
+Engineer, Acme | 2021 - Present
+- Built Python services on AWS and shipped them with Docker.
+
+Skills
+Python, Kubernetes, Redis, Docker, AWS`
+
+  const found = keywordRequirements(resume, posting)
+  const byLabel = (label: string) => found.find((item) => item.label === label)
+
+  it('takes importance from the posting’s own headings', () => {
+    for (const label of ['Python', 'AWS', 'Docker']) {
+      assert.equal(byLabel(label)?.importance, 'required', label)
+    }
+    for (const label of ['Kubernetes', 'Terraform']) {
+      assert.equal(byLabel(label)?.importance, 'preferred', label)
+    }
+  })
+
+  it('treats “is a plus” on a single line as nice to have', () => {
+    assert.equal(byLabel('Redis')?.importance, 'preferred')
+  })
+
+  it('gives credit only when the word appears outside the skills list', () => {
+    assert.equal(byLabel('Python')?.coverage, 'strong')
+    assert.equal(byLabel('Kubernetes')?.coverage, 'missing')
+    assert.notEqual(byLabel('Kubernetes')?.evidence, null)
+  })
+
+  it('tells a skills-list mention apart from a word that is not there at all', () => {
+    assert.equal(byLabel('Terraform')?.coverage, 'missing')
+    assert.equal(byLabel('Terraform')?.evidence, null)
+    assert.match(byLabel('Kubernetes')?.note ?? '', /skills list/)
+  })
+
+  it('lists requirements in the order the posting mentions them', () => {
+    const order = found.map((item) => item.label)
+    assert.ok(order.indexOf('Python') < order.indexOf('Docker'))
+    assert.ok(order.indexOf('Docker') < order.indexOf('Kubernetes'))
+  })
+
+  it('earns nothing for a word that only sits in the skills list', () => {
+    const score = scoreRequirements(found)
+    assert.equal(score.breakdown.find((part) => part.label === 'Preferred')?.score, 0)
+  })
+})
+
+describe('the word-only mode recognises work described another way', () => {
+  it('counts accessible and WCAG as accessibility', () => {
+    const [item] = keywordRequirements(
+      'Experience\n- Built accessible checkout forms.',
+      'Requirements\n- Accessibility to WCAG 2.2 AA',
+    )
+    assert.equal(item.label, 'Accessibility')
+    assert.equal(item.coverage, 'strong')
+  })
+
+  it('counts GitHub Actions as CI/CD', () => {
+    const [item] = keywordRequirements(
+      'Experience\n- Ran releases through GitHub Actions.',
+      'Requirements\n- Automated testing and CI/CD',
+    )
+    assert.equal(item.label, 'CI/CD')
+    assert.equal(item.coverage, 'strong')
+  })
+
+  it('does not read ts or js into ordinary words', () => {
+    const labels = keywordRequirements(
+      'Experience\n- Helped patients.',
+      'We help patients and clients',
+    ).map((item) => item.label)
+    assert.deepEqual(labels, [])
+  })
+})
+
+describe('skills-list credit', () => {
+  const resume = `Sam Lee
+sam@example.com
+
+Experience
+Engineer, Acme | 2021 - Present
+- Built Python services on AWS and shipped them with Docker.
+
+Skills
+Python, Kubernetes, Redis, Docker, AWS`
+
+  it('gives no credit for a quote that only exists in the skills list', () => {
+    const [out] = groundRequirements(resume, [
+      requirement({
+        label: 'Kubernetes',
+        coverage: 'partial',
+        evidence: 'Python, Kubernetes, Redis, Docker, AWS',
+      }),
+    ])
+    assert.equal(out.coverage, 'missing')
+    assert.notEqual(out.evidence, null)
+    assert.equal(out.evidenceVerified, false)
+  })
+
+  it('still credits a quote from real work', () => {
+    const [out] = groundRequirements(resume, [
+      requirement({
+        label: 'Python',
+        coverage: 'strong',
+        evidence: 'Built Python services on AWS and shipped them with Docker.',
+      }),
+    ])
+    assert.equal(out.coverage, 'strong')
+    assert.equal(out.evidenceVerified, true)
+  })
+
+  it('leaves a resume with no skills section alone', () => {
+    const [out] = groundRequirements(
+      'Experience\n- Used Kubernetes in production clusters daily.',
+      [
+        requirement({
+          coverage: 'strong',
+          evidence: 'Used Kubernetes in production clusters daily.',
+        }),
+      ],
+    )
+    assert.equal(out.coverage, 'strong')
+  })
+})
+
+describe('the rewrite content guard', () => {
+  const original = 'Responsible for the checkout redesign.'
+
+  it('rejects added scope, even when no number is added', () => {
+    assert.ok(
+      addedContentWords(original, 'Led the checkout redesign from initial concept to release.')
+        .length > MAX_ADDED_WORDS,
+    )
+  })
+
+  it('allows a sharper verb', () => {
+    assert.ok(addedContentWords(original, 'Led the checkout redesign.').length <= MAX_ADDED_WORDS)
+  })
+
+  it('allows the same fact in plainer words', () => {
+    const before = 'Helped the team move to a shared Figma library and wrote some of the docs.'
+    const after = 'Moved the team to a shared Figma library and wrote its documentation.'
+    assert.ok(addedContentWords(before, after).length <= MAX_ADDED_WORDS)
+  })
+
+  it('does not count the opening verb or small words', () => {
+    assert.deepEqual(addedContentWords('Worked on the API', 'Built the API'), [])
   })
 })

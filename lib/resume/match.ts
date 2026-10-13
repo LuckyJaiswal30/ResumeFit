@@ -11,11 +11,29 @@ const SKILL_ALIASES: Record<string, string[]> = {
   'next.js': ['next', 'nextjs'],
   postgresql: ['postgres'],
   kubernetes: ['k8s'],
-  'ci/cd': ['ci cd', 'continuous integration', 'continuous delivery'],
+  'ci/cd': [
+    'ci cd',
+    'continuous integration',
+    'continuous delivery',
+    'github actions',
+    'gitlab ci',
+    'circleci',
+  ],
   rest: ['rest api', 'rest apis', 'restful'],
   'machine learning': ['ml'],
   aws: ['amazon web services'],
   'github actions': ['gh actions'],
+  accessibility: ['accessible', 'a11y', 'wcag'],
+  'design system': ['design systems', 'component library', 'component libraries', 'ui library'],
+  'web performance': [
+    'core web vitals',
+    'largest contentful paint',
+    'page speed',
+    'page load',
+    'lighthouse',
+  ],
+  'a/b testing': ['a/b test', 'a/b tests', 'ab testing', 'split testing', 'experimentation'],
+  mentoring: ['mentor', 'mentored', 'mentors'],
 }
 
 const SKILLS = [
@@ -25,6 +43,7 @@ const SKILLS = [
   'Angular',
   'Ansible',
   'API',
+  'A/B testing',
   'AWS',
   'Azure',
   'Bash',
@@ -32,6 +51,7 @@ const SKILLS = [
   'C++',
   'CI/CD',
   'CSS',
+  'Design system',
   'Django',
   'Docker',
   'Elasticsearch',
@@ -55,6 +75,7 @@ const SKILLS = [
   'Kubernetes',
   'Linux',
   'Machine learning',
+  'Mentoring',
   'MongoDB',
   'MySQL',
   'Next.js',
@@ -80,6 +101,7 @@ const SKILLS = [
   'Snowflake',
   'Spark',
   'Spring',
+  'Storybook',
   'SQL',
   'Swift',
   'Tableau',
@@ -88,10 +110,11 @@ const SKILLS = [
   'Terraform',
   'TypeScript',
   'Vue',
+  'Web performance',
   'Webpack',
 ]
 
-function normalize(value: string) {
+export function normalize(value: string) {
   return value
     .toLowerCase()
     .replace(/[‘’']/g, '')
@@ -104,14 +127,22 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-function containsTerm(normalizedText: string, term: string) {
+export function containsTerm(normalizedText: string, term: string) {
   const normalizedTerm = normalize(term)
   if (!normalizedTerm) return false
   const pattern = new RegExp(`(?<![a-z0-9+#.])${escapeRegExp(normalizedTerm)}(?![a-z0-9+#])`)
   return pattern.test(normalizedText)
 }
 
-function termWithAliases(skill: string) {
+function termIndex(normalizedText: string, term: string) {
+  const normalizedTerm = normalize(term)
+  if (!normalizedTerm) return -1
+  return normalizedText.search(
+    new RegExp(`(?<![a-z0-9+#.])${escapeRegExp(normalizedTerm)}(?![a-z0-9+#])`),
+  )
+}
+
+export function termWithAliases(skill: string) {
   return [skill, ...(SKILL_ALIASES[skill.toLowerCase()] ?? [])]
 }
 
@@ -138,12 +169,28 @@ function downgrade(coverage: Coverage): Coverage {
   return coverage === 'strong' ? 'partial' : 'missing'
 }
 
+function onlyInSkillsList(resume: string, evidence: string | null) {
+  if (!evidence) return false
+  const wanted = normalize(evidence)
+  if (wanted.length === 0) return false
+  const containing = resumeLines(resume).filter((line) => line.text.includes(wanted))
+  return containing.length > 0 && containing.every((line) => line.skills)
+}
+
 export function groundRequirements(resume: string, requirements: Requirement[]): Requirement[] {
   return requirements.map((requirement) => {
     if (requirement.coverage === 'missing') {
       return { ...requirement, evidence: null, evidenceVerified: false }
     }
     const evidenceVerified = verifyEvidence(resume, requirement.evidence)
+    if (evidenceVerified && onlyInSkillsList(resume, requirement.evidence)) {
+      return {
+        ...requirement,
+        coverage: 'missing',
+        evidenceVerified: false,
+        note: 'You name this, but no work backs it up.',
+      }
+    }
     if (evidenceVerified) return { ...requirement, evidenceVerified }
     const coverage = downgrade(requirement.coverage)
     return {
@@ -213,29 +260,99 @@ export function scoreRequirements(requirements: Requirement[]): MatchReport {
   }
 }
 
-export function keywordRequirements(resume: string, jobDescription: string): Requirement[] {
-  const normalizedResume = normalize(resume)
-  const normalizedJob = normalize(jobDescription)
+const PREFERRED_HEADING =
+  /\b(?:nice[- ]to[- ]haves?|preferred|bonus|desirable|good to have|extra credit)\b/i
+const PREFERRED_INLINE = /\b(?:is|are) a plus\b|\(a plus\)|\bnice[- ]to[- ]have\b|\bbonus\b/i
 
-  return SKILLS.filter((skill) =>
-    termWithAliases(skill).some((term) => containsTerm(normalizedJob, term)),
-  ).map((skill) => {
-    const covered = termWithAliases(skill).some((term) => containsTerm(normalizedResume, term))
-    const coverage: Coverage = covered ? 'strong' : 'missing'
-    const importance: Importance = 'required'
-    return {
-      id: `keyword-${skill.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-      label: skill,
-      category: 'skill' as const,
-      importance,
-      coverage,
-      evidence: null,
-      evidenceVerified: false,
-      note: covered
-        ? 'This word appears in both the posting and your resume.'
-        : 'The posting uses this word. Your resume doesn’t.',
-    }
+function isHeading(line: string) {
+  const words = line.trim().split(/\s+/).filter(Boolean)
+  const text = line.trim()
+  return words.length > 0 && words.length <= 7 && !/^[-*•▪◦‣·]|^\d+[.)]|[.!?]$/.test(text)
+}
+
+function lineImportances(jobDescription: string) {
+  let mode: Importance = 'required'
+  return jobDescription
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      if (isHeading(line)) {
+        mode = PREFERRED_HEADING.test(line) ? 'preferred' : 'required'
+        return { text: normalize(line), importance: mode }
+      }
+      const importance: Importance = PREFERRED_INLINE.test(line) ? 'preferred' : mode
+      return { text: normalize(line), importance }
+    })
+}
+
+const RESUME_SECTION =
+  /^\s*(?:(?:work|professional|relevant|employment)\s+)?(?:experience|employment|work history|career history)\b|^\s*(?:education|academic background|qualifications)\b|^\s*(?:(?:technical|core|key)\s+)?(?:skills|competencies|technologies|tools|tech stack|proficiencies)\b|^\s*(?:projects|selected projects|personal projects|certifications?|licen[sc]es|awards|summary|profile|objective|about me|languages|interests)\b/i
+const SKILLS_HEADING =
+  /^\s*(?:(?:technical|core|key)\s+)?(?:skills|competencies|technologies|tools|tech stack|proficiencies)\b/i
+
+function resumeLines(resume: string) {
+  let inSkills = false
+  return resume
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      if (RESUME_SECTION.test(line) && isHeading(line)) {
+        inSkills = SKILLS_HEADING.test(line)
+        return { text: '', skills: false }
+      }
+      return { text: normalize(line), skills: inSkills }
+    })
+}
+
+export function keywordRequirements(resume: string, jobDescription: string): Requirement[] {
+  const postingLines = lineImportances(jobDescription)
+  const resumeText = resumeLines(resume)
+  const mentions = (lines: Array<{ text: string }>, skill: string) =>
+    termWithAliases(skill).some((term) => lines.some((line) => containsTerm(line.text, term)))
+
+  const found = SKILLS.filter((skill) => mentions(postingLines, skill)).map((skill) => {
+    const asked = postingLines.filter((line) =>
+      termWithAliases(skill).some((term) => containsTerm(line.text, term)),
+    )
+    const importance: Importance = asked.some((line) => line.importance === 'required')
+      ? 'required'
+      : 'preferred'
+    const normalizedJob = normalize(jobDescription)
+    const position = Math.min(
+      ...termWithAliases(skill)
+        .map((term) => termIndex(normalizedJob, term))
+        .filter((index) => index >= 0),
+    )
+    return { skill, importance, position }
   })
+
+  return found
+    .sort((a, b) => a.position - b.position)
+    .map(({ skill, importance }) => {
+      const inExperience = mentions(
+        resumeText.filter((line) => !line.skills),
+        skill,
+      )
+      const inSkillsOnly = !inExperience && mentions(resumeText, skill)
+      const coverage: Coverage = inExperience ? 'strong' : 'missing'
+      const note = inExperience
+        ? 'This word appears in your experience. A model review would also check the work behind it.'
+        : inSkillsOnly
+          ? 'This word only appears in your skills list. Add a bullet that shows the work.'
+          : 'The posting uses this word. Your resume doesn’t.'
+      return {
+        id: `keyword-${skill.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        label: skill,
+        category: 'skill' as const,
+        importance,
+        coverage,
+        evidence: inSkillsOnly ? skill : null,
+        evidenceVerified: false,
+        note,
+      }
+    })
 }
 
 export function addsUnsupportedNumber(original: string, rewrite: string) {
@@ -243,3 +360,32 @@ export function addsUnsupportedNumber(original: string, rewrite: string) {
   const originalNumbers = new Set(original.match(pattern) ?? [])
   return (rewrite.match(pattern) ?? []).some((number) => !originalNumbers.has(number))
 }
+
+const FILLER = new Set(
+  'a an and as at by for from in into of on or the to with its their his her our your this that these those it is was were be been being than then so also while across over under per via within without up out'.split(
+    ' ',
+  ),
+)
+
+function stem(word: string) {
+  return word.replace(/(?:ations?|ings?|ed|es|s)$/, '')
+}
+
+function sameWord(a: string, b: string) {
+  const left = stem(a)
+  const right = stem(b)
+  if (left === right) return true
+  const shortest = Math.min(left.length, right.length)
+  return shortest >= 3 && (left.startsWith(right) || right.startsWith(left))
+}
+
+export function addedContentWords(original: string, rewrite: string) {
+  const tokens = (value: string) => value.toLowerCase().match(/[a-z][a-z'-]*/g) ?? []
+  const before = tokens(original)
+  const [, ...after] = tokens(rewrite)
+  return after.filter(
+    (word) => !FILLER.has(word) && !before.some((existing) => sameWord(existing, word)),
+  )
+}
+
+export const MAX_ADDED_WORDS = 2

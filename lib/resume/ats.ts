@@ -1,3 +1,4 @@
+import { hasPhoneNumber } from './contact'
 import type { AtsReport } from './types'
 
 const BULLET_PREFIX = /^(?:[-*•▪◦‣·]|\d+[.)])\s+/
@@ -16,7 +17,6 @@ const SECTION_PATTERNS = [
 ]
 
 const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
-const PHONE = /(?:\+?\d[\d().\-\s]{7,}\d)/
 const PROFILE_LINK =
   /(?:linkedin\.com|github\.com|gitlab\.com|behance\.net|dribbble\.com|https?:\/\/)/i
 const YEAR = /\b(?:19|20)\d{2}\b/
@@ -34,14 +34,32 @@ function countWords(text: string) {
   return text.split(/\s+/).filter(Boolean).length
 }
 
+const HEADING_MAX_WORDS = 4
+
+function longestProseRun(resume: string) {
+  let longest = 0
+  let current = 0
+  for (const raw of resume.split(/\r?\n/)) {
+    const line = raw.trim()
+    const words = countWords(line)
+    if (words <= HEADING_MAX_WORDS || BULLET_PREFIX.test(line)) {
+      current = 0
+      continue
+    }
+    current += words
+    longest = Math.max(longest, current)
+  }
+  return longest
+}
+
 export function buildAtsReport(resume: string): AtsReport {
   const bullets = extractBullets(resume)
   const wordCount = countWords(resume)
   const foundSections = SECTION_PATTERNS.filter((section) => section.pattern.test(resume))
-  const longestParagraph = Math.max(0, ...resume.split(/\n\s*\n/).map((block) => countWords(block)))
+  const longestParagraph = longestProseRun(resume)
 
   const hasEmail = EMAIL.test(resume)
-  const hasPhone = PHONE.test(resume)
+  const hasPhone = hasPhoneNumber(resume)
 
   const checks = [
     {
