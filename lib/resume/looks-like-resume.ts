@@ -1,3 +1,5 @@
+import { hasPhoneNumber } from './contact'
+
 export type ResumeCheck = {
   ok: boolean
   score: number
@@ -6,9 +8,9 @@ export type ResumeCheck = {
 }
 
 const PASS_MARK = 6
+const MIN_WORDS = 30
 
 const EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i
-const PHONE = /(?:\+?\d[\d().\-\s]{7,}\d)/
 const PROFILE = /(?:linkedin\.com|github\.com|gitlab\.com|behance\.net|dribbble\.com|portfolio)/i
 
 const DATE_RANGE = new RegExp(
@@ -56,6 +58,15 @@ const OTHER_DOCUMENT = [
   },
 ]
 
+const POSTING_LANGUAGE = [
+  /\b(?:we(?:’|')?re|we\s+are|is|are)\s+(?:now\s+)?(?:hiring|recruiting|looking\s+for|seeking)\b/i,
+  /\b(?:about\s+(?:the\s+)?(?:role|job|company)|the\s+role|job\s+description)\b/i,
+  /\b(?:you\s+will|you(?:’|')?ll)\s+(?:be|have|work|design|build|lead|own|help|join)\b/i,
+  /^\s*(?:key\s+|core\s+)?responsibilities\s*:?\s*$/im,
+  /\b(?:requirements|qualifications)\s*:/i,
+  /\b(?:nice\s+to\s+have|apply\s+(?:now|today|at|here)|equal\s+opportunity|we\s+offer|benefits\s+include)\b/i,
+]
+
 function countMatches(text: string, pattern: RegExp) {
   return (text.match(pattern) ?? []).length
 }
@@ -72,7 +83,7 @@ export function looksLikeResume(text: string): ResumeCheck {
     missing.push('an email address')
   }
 
-  if (PHONE.test(text)) score += 1
+  if (hasPhoneNumber(text)) score += 1
   if (PROFILE.test(text)) score += 1
 
   const sections = SECTIONS.filter((pattern) => pattern.test(text)).length
@@ -99,12 +110,23 @@ export function looksLikeResume(text: string): ResumeCheck {
   if (otherKind) {
     score -= 5
     missing.push(`it reads more like ${otherKind.label}`)
+  } else if (POSTING_LANGUAGE.filter((pattern) => pattern.test(text)).length >= 3) {
+    score -= 5
+    missing.push('it reads more like a job posting')
   }
 
-  return { ok: score >= PASS_MARK, score, found, missing }
+  const words = text.split(/\s+/).filter(Boolean).length
+  if (words < MIN_WORDS) missing.push('more than a few lines of content')
+
+  return { ok: score >= PASS_MARK && words >= MIN_WORDS, score, found, missing }
 }
 
 export function resumeRejectionMessage(check: ResumeCheck) {
-  const reasons = check.missing.slice(0, 3).join(', ')
-  return `This doesn’t look like a resume. There’s no sign of ${reasons}. Upload your CV instead, or paste the text if the file didn’t read cleanly.`
+  const kind = check.missing.find((entry) => entry.startsWith('it reads more like'))
+  const absent = check.missing.filter((entry) => entry !== kind).slice(0, kind ? 2 : 3)
+  const parts = ['This doesn’t look like a resume.']
+  if (kind) parts.push(`${kind[0].toUpperCase()}${kind.slice(1)}.`)
+  if (absent.length > 0) parts.push(`There’s no sign of ${absent.join(', ')}.`)
+  parts.push('Upload your CV, or save it as a .txt file if it didn’t read cleanly.')
+  return parts.join(' ')
 }

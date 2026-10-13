@@ -179,6 +179,13 @@ async function readPages(bytes: Uint8Array) {
   }
 }
 
+export class PasswordProtectedError extends Error {
+  constructor() {
+    super('This PDF is password protected.')
+    this.name = 'PasswordProtectedError'
+  }
+}
+
 export async function extractPdfText(bytes: Uint8Array) {
   let timer: ReturnType<typeof setTimeout> | undefined
   const expiry = new Promise<never>((_, reject) => {
@@ -187,6 +194,11 @@ export async function extractPdfText(bytes: Uint8Array) {
 
   try {
     return await Promise.race([readPages(bytes), expiry])
+  } catch (error) {
+    if (error instanceof Error && error.name === 'PasswordException') {
+      throw new PasswordProtectedError()
+    }
+    throw error
   } finally {
     clearTimeout(timer)
   }

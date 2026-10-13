@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { buildAnalysis } from '@/lib/resume/analyze'
 import { looksLikeResume, resumeRejectionMessage } from '@/lib/resume/looks-like-resume'
+import { looksLikeJobPosting, postingRejectionMessage } from '@/lib/resume/looks-like-job-posting'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 
 export const runtime = 'nodejs'
@@ -26,10 +27,16 @@ export async function POST(request: Request) {
   let payload: z.infer<typeof requestSchema>
   try {
     payload = requestSchema.parse(await request.json())
-  } catch {
+  } catch (cause) {
+    const tooLong =
+      cause instanceof z.ZodError && cause.issues.some((issue) => issue.code === 'too_big')
     return Response.json(
-      { error: 'Send both a resume and a posting, at least 80 characters each.' },
-      { status: 400, headers: limitHeaders },
+      {
+        error: tooLong
+          ? 'The resume or the posting is too long. Trim it and try again.'
+          : 'Send both a resume and a posting, at least 80 characters each.',
+      },
+      { status: tooLong ? 413 : 400, headers: limitHeaders },
     )
   }
 
@@ -37,6 +44,14 @@ export async function POST(request: Request) {
   if (!check.ok) {
     return Response.json(
       { error: resumeRejectionMessage(check) },
+      { status: 422, headers: limitHeaders },
+    )
+  }
+
+  const posting = looksLikeJobPosting(payload.jobDescription)
+  if (!posting.ok) {
+    return Response.json(
+      { error: postingRejectionMessage(posting) },
       { status: 422, headers: limitHeaders },
     )
   }

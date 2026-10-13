@@ -25,7 +25,17 @@ let snapshot: { raw: string | null; session: AnalysisSession | null } = {
 function parse(raw: string): AnalysisSession | null {
   try {
     const parsed = JSON.parse(raw) as AnalysisSession
-    return parsed.analysis?.match ? parsed : null
+    const analysis = parsed.analysis
+    const complete =
+      Boolean(analysis?.match) &&
+      Array.isArray(analysis.match.requirements) &&
+      Boolean(analysis.ats) &&
+      Array.isArray(analysis.ats.checks) &&
+      Array.isArray(analysis.findings) &&
+      Array.isArray(analysis.phrasing) &&
+      Array.isArray(analysis.rewrites) &&
+      typeof parsed.fileName === 'string'
+    return complete ? parsed : null
   } catch {
     return null
   }

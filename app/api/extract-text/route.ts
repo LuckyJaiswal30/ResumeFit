@@ -1,6 +1,6 @@
 import mammoth from 'mammoth'
 import { looksLikeResume, resumeRejectionMessage } from '@/lib/resume/looks-like-resume'
-import { extractPdfText } from '@/lib/resume/pdf-text'
+import { extractPdfText, PasswordProtectedError } from '@/lib/resume/pdf-text'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/security/rate-limit'
 
 export const runtime = 'nodejs'
@@ -32,26 +32,33 @@ function tidy(text: string) {
     .slice(0, MAX_TEXT_LENGTH)
 }
 
-function decodeText(bytes: Uint8Array) {
-  const [a, b, c] = bytes
-  if (a === 0xff && b === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2))
-  if (a === 0xfe && b === 0xff) return new TextDecoder('utf-16be').decode(bytes.subarray(2))
-  if (a === 0xef && b === 0xbb && c === 0xbf) {
-    return new TextDecoder('utf-8').decode(bytes.subarray(3))
-  }
+function utf16Flavour(bytes: Uint8Array): 'utf-16le' | 'utf-16be' | null {
+  const [a, b] = bytes
+  if (a === 0xff && b === 0xfe) return 'utf-16le'
+  if (a === 0xfe && b === 0xff) return 'utf-16be'
 
   const sample = bytes.subarray(0, 2048)
   const evenNulls = sample.filter((byte, index) => byte === 0 && index % 2 === 1).length
   const oddNulls = sample.filter((byte, index) => byte === 0 && index % 2 === 0).length
-  if (evenNulls > sample.length / 8) return new TextDecoder('utf-16le').decode(bytes)
-  if (oddNulls > sample.length / 8) return new TextDecoder('utf-16be').decode(bytes)
+  if (evenNulls > sample.length / 8) return 'utf-16le'
+  if (oddNulls > sample.length / 8) return 'utf-16be'
+  return null
+}
 
-  const utf8 = new TextDecoder('utf-8', { fatal: false }).decode(bytes)
-  const replacements = (utf8.match(/\ufffd/g) ?? []).length
-  if (replacements > utf8.length / 200) {
+function decodeText(bytes: Uint8Array, utf16: 'utf-16le' | 'utf-16be' | null) {
+  if (utf16) {
+    const hasBom = bytes[0] === 0xff || bytes[0] === 0xfe
+    return new TextDecoder(utf16).decode(hasBom ? bytes.subarray(2) : bytes)
+  }
+  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    return new TextDecoder('utf-8').decode(bytes.subarray(3))
+  }
+
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+  } catch {
     return new TextDecoder('windows-1252').decode(bytes)
   }
-  return utf8
 }
 
 function startsWith(bytes: Uint8Array, signature: string) {
@@ -89,8 +96,9 @@ export async function POST(request: Request) {
     let text: string
 
     if (name.endsWith('.txt')) {
-      if (looksBinary(bytes)) return fail('There is no readable text in that file.')
-      text = decodeText(bytes)
+      const utf16 = utf16Flavour(bytes)
+      if (!utf16 && looksBinary(bytes)) return fail('There is no readable text in that file.')
+      text = decodeText(bytes, utf16)
     } else if (name.endsWith('.docx')) {
       if (!startsWith(bytes, 'PK\u0003\u0004')) return fail('That’s not really a .docx file.')
       text = (await mammoth.extractRawText({ buffer: Buffer.from(bytes) })).value
@@ -113,9 +121,12 @@ export async function POST(request: Request) {
     if (!check.ok) return fail(resumeRejectionMessage(check), 422)
 
     return Response.json({ text }, { headers: limitHeaders })
-  } catch {
+  } catch (error) {
+    if (error instanceof PasswordProtectedError) {
+      return fail('That PDF is password protected. Save an unlocked copy and upload that.', 422)
+    }
     return fail(
-      'That file could not be read. Try a different export, or paste the text instead.',
+      'That file could not be read. Try a different export, or save it as a .txt file.',
       422,
     )
   }

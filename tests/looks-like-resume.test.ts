@@ -147,3 +147,28 @@ describe('the rejection message', () => {
     )
   })
 })
+
+describe('documents that pass a first look but are not resumes', () => {
+  it('turns away a job posting even when it carries an email address', () => {
+    const result = looksLikeResume(`Senior Backend Engineer
+Acme Corp is hiring. Requirements:
+- 5+ years of Python experience
+- Experience with AWS, Kubernetes and PostgreSQL
+Responsibilities:
+- Design and build APIs
+- Mentor junior engineers
+Benefits include remote work. Apply at jobs@acme.com
+Experience required: 5 years. Education: Bachelor's degree preferred.
+Skills: Python, AWS, Kubernetes`)
+    assert.ok(!result.ok, `scored ${result.score}`)
+    assert.ok(result.missing.some((entry) => /job posting/i.test(entry)))
+  })
+
+  it('turns away a list of headings with almost nothing under them', () => {
+    const result = looksLikeResume(
+      'jane@example.com\nExperience\nEducation\nSkills\n2019 - 2023\nled built developed designed\n- a\n- b\n- c',
+    )
+    assert.ok(!result.ok)
+    assert.ok(result.missing.some((entry) => /few lines of content/i.test(entry)))
+  })
+})
