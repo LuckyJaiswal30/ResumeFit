@@ -1,10 +1,16 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = { title: 'Terms — ResumeFit' }
 
 export default function TermsPage() {
   return (
     <main id="main" className="flex-1 bg-background px-5 py-12 text-foreground sm:px-8">
       <article className="mx-auto max-w-2xl">
-        <Link href="/" className="text-sm text-primary">
+        <Link
+          href="/"
+          className="rounded-sm text-sm text-primary outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
+        >
           ← Back to ResumeFit
         </Link>
         <h1 className="mt-16 text-5xl font-semibold tracking-[-0.06em]">Terms</h1>
