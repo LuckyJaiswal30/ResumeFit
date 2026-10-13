@@ -3,4 +3,9 @@ nodeLinker: hoisted
 minimumReleaseAgeExclude:
   - '@next/*'
   - next
-  - lucide-react@1.38.0
+
+overrides:
+  browserslist: '>=4.28.7'
+  source-map-js: '>=1.2.2'
+  baseline-browser-mapping: '>=2.11.0'
+  argparse: '>=2.0.1'
