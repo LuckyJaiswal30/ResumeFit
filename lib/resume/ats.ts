@@ -1,7 +1,8 @@
 import { hasPhoneNumber } from './contact'
 import type { AtsReport } from './types'
+import { BULLET_LINE } from './bullets'
 
-const BULLET_PREFIX = /^(?:[-*•▪◦‣·]|\d+[.)])\s+/
+const BULLET_PREFIX = BULLET_LINE
 
 const SECTION_PATTERNS = [
   {

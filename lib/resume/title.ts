@@ -1,4 +1,5 @@
 import type { TitleCheck, TitleVerdict } from './types'
+import { BULLET_LINE } from './bullets'
 
 const ROLE =
   /\b(?:engineer|developer|designer|manager|analyst|scientist|architect|consultant|specialist|administrator|coordinator|director|officer|assistant|technician|accountant|nurse|teacher|recruiter|marketer|writer|editor|strategist|representative|executive|programmer|tester|researcher|producer|owner|advisor|planner|buyer|pharmacist|paralegal|lawyer|counsel)\b/i
@@ -10,7 +11,7 @@ export const SECTION_END =
   /^\s*(?:education|skills|technical skills|projects|certifications?|awards|references|languages|interests|publications)\b/i
 export const EXPERIENCE =
   /^\s*(?:work\s+|professional\s+|relevant\s+|employment\s+)?(?:experience|employment|work history|career history)\b/i
-export const BULLET = /^\s*(?:[-*•▪◦‣·]|\d+[.)])\s+/
+export const BULLET = BULLET_LINE
 const SEPARATORS = /\s*(?:,|\||—|–|\s-\s|@|\bat\b|\()\s*/i
 const LABEL = /^\s*(?:job\s+title|title|position|role)\s*[:-]\s*/i
 

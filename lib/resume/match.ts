@@ -1,4 +1,7 @@
 import type { Coverage, Importance, MatchReport, Requirement } from './types'
+import { BULLET_MARK } from './bullets'
+
+const NOT_A_PHRASE = new RegExp(String.raw`^${BULLET_MARK}|^\d+[.)]|[.!?]$`, 'u')
 
 const CREDIT: Record<Coverage, number> = { strong: 1, partial: 0.5, missing: 0 }
 const REQUIRED_WEIGHT = 75
@@ -267,7 +270,7 @@ const PREFERRED_INLINE = /\b(?:is|are) a plus\b|\(a plus\)|\bnice[- ]to[- ]have\
 function isHeading(line: string) {
   const words = line.trim().split(/\s+/).filter(Boolean)
   const text = line.trim()
-  return words.length > 0 && words.length <= 7 && !/^[-*•▪◦‣·]|^\d+[.)]|[.!?]$/.test(text)
+  return words.length > 0 && words.length <= 7 && !NOT_A_PHRASE.test(text)
 }
 
 function lineImportances(jobDescription: string) {
