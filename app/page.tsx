@@ -102,7 +102,10 @@ export default function Home() {
         </div>
         <div className="flex flex-col divide-y divide-border border-y border-border">
           {[
-            ['Add your resume', 'Upload the PDF, DOCX or TXT you already send.'],
+            [
+              'Add your resume',
+              'Upload the file you already send, photos of it, or paste the text.',
+            ],
             ['Paste the posting', 'All of it, requirements included.'],
             ['Read what came back', 'Your score, your gaps, and the bullets to fix.'],
           ].map(([t, d], i) => (

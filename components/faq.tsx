@@ -10,11 +10,11 @@ const FAQS = [
   ],
   [
     'What happens to my resume?',
-    'The file is never saved. Your text goes to the model that writes the analysis, and the result is cached for an hour so a repeat costs nothing. What you see lives in this tab and goes when you close it.',
+    'The file is never saved. Your text goes to the model that writes the analysis, and the result is cached for an hour so a repeat costs nothing. A photo or scan goes to the same model once so it can read the text. What you see lives in this tab and goes when you close it.',
   ],
   [
     'What can I upload?',
-    'A PDF, DOCX or TXT, up to 4 MB. Export it as text, not a scan, since a picture has no text to read. A file that won’t parse is refused, not guessed at.',
+    'A PDF, Word document (DOCX or the older DOC), ODT, RTF or text file, up to 4 MB. Scanned PDFs work, and so do photos or screenshots, up to five pages of them. Two-column templates are read one column at a time. If nothing uploads cleanly, paste the text instead. Blurred words come back as [illegible] rather than guessed at.',
   ],
   [
     'Will it rewrite my bullets?',
