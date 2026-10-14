@@ -8,6 +8,8 @@ type JsonSchema = Record<string, unknown>
 
 type GeminiPart = { text?: string; thought?: boolean }
 
+export type Attachment = { mimeType: string; data: Uint8Array }
+
 export class AiUnavailableError extends Error {}
 
 export class AiRequestError extends Error {}
@@ -20,6 +22,10 @@ export function isAiConfigured() {
 
 export function activeModel() {
   return resolveProvider()?.model ?? null
+}
+
+export function canReadImages() {
+  return resolveProvider()?.name === 'gemini'
 }
 
 export function promptCharBudget() {
@@ -90,13 +96,25 @@ function isRetryable(status: number) {
   return status === 400 || status === 408 || status >= 500
 }
 
-function request(provider: ProviderConfig, prompt: string, schema: JsonSchema, timeoutMs: number) {
+function request(
+  provider: ProviderConfig,
+  prompt: string,
+  schema: JsonSchema,
+  timeoutMs: number,
+  attachments?: Attachment[],
+) {
   if (provider.name === 'gemini') {
+    const files = (attachments ?? []).map((attachment) => ({
+      inlineData: {
+        mimeType: attachment.mimeType,
+        data: Buffer.from(attachment.data).toString('base64'),
+      },
+    }))
     return fetch(`${GEMINI_HOST}/${encodeURIComponent(provider.model)}:generateContent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': provider.apiKey },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts: [...files, { text: prompt }] }],
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema: toGeminiSchema(schema),
@@ -133,9 +151,13 @@ export async function generateJson<T>(options: {
   schema: JsonSchema
   validator: z.ZodType<T>
   timeoutScale?: number
+  attachments?: Attachment[]
 }): Promise<T> {
   const provider = resolveProvider()
   if (!provider) throw new AiUnavailableError('No AI provider is configured.')
+  if (options.attachments?.length && provider.name !== 'gemini') {
+    throw new AiUnavailableError(`${provider.name} can’t read files here.`)
+  }
 
   const timeoutMs = Math.round(provider.timeoutMs * (options.timeoutScale ?? 1))
   let response: Response | undefined
@@ -143,7 +165,13 @@ export async function generateJson<T>(options: {
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      response = await request(provider, options.prompt, options.schema, timeoutMs)
+      response = await request(
+        provider,
+        options.prompt,
+        options.schema,
+        timeoutMs,
+        options.attachments,
+      )
       if (response.ok || !isRetryable(response.status)) break
       lastError = new AiRequestError(describeStatus(provider.name, response.status))
     } catch (error) {

@@ -1,10 +1,13 @@
 import { hasPhoneNumber } from './contact'
+import { BULLET_MARK } from './bullets'
 
 export type ResumeCheck = {
   ok: boolean
   score: number
   found: string[]
   missing: string[]
+  // More than one person's resume in the same text.
+  several: boolean
 }
 
 const PASS_MARK = 6
@@ -33,7 +36,7 @@ const SECTIONS = [
 const ACTION_VERBS =
   /\b(?:led|built|developed|designed|implemented|managed|mentored|delivered|owned|migrated|launched|shipped|improved|reduced|increased|created|maintained|architected|coordinated)\b/gi
 
-const BULLET = /^\s*(?:[-*•▪◦‣·]|\d+[.)])\s+\S/gm
+const BULLET = new RegExp(String.raw`^\s*(?:${BULLET_MARK}|\d+[.)])\s+\S`, 'gmu')
 
 const OTHER_DOCUMENT = [
   {
@@ -66,6 +69,20 @@ const POSTING_LANGUAGE = [
   /\b(?:requirements|qualifications)\s*:/i,
   /\b(?:nice\s+to\s+have|apply\s+(?:now|today|at|here)|equal\s+opportunity|we\s+offer|benefits\s+include)\b/i,
 ]
+
+const EMAILS = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi
+const EXPERIENCE_HEADING =
+  /^\s*(?:work\s+|professional\s+|relevant\s+|employment\s+)?(?:experience|employment|work history|career history)\s*:?\s*$/gim
+const EDUCATION_HEADING =
+  /^\s*(?:education|academic background|academic history|qualifications)\s*:?\s*$/gim
+
+// Two contact addresses alone could be a referee's. Two addresses and the core sections
+// repeated is two resumes run together.
+export function looksLikeSeveralResumes(text: string) {
+  const emails = new Set((text.match(EMAILS) ?? []).map((email) => email.toLowerCase()))
+  if (emails.size < 2) return false
+  return countMatches(text, EXPERIENCE_HEADING) >= 2 || countMatches(text, EDUCATION_HEADING) >= 2
+}
 
 function countMatches(text: string, pattern: RegExp) {
   return (text.match(pattern) ?? []).length
@@ -118,10 +135,21 @@ export function looksLikeResume(text: string): ResumeCheck {
   const words = text.split(/\s+/).filter(Boolean).length
   if (words < MIN_WORDS) missing.push('more than a few lines of content')
 
-  return { ok: score >= PASS_MARK && words >= MIN_WORDS, score, found, missing }
+  const several = looksLikeSeveralResumes(text)
+  return {
+    ok: score >= PASS_MARK && words >= MIN_WORDS && !several,
+    score,
+    found,
+    missing,
+    several,
+  }
 }
 
+export const SEVERAL_RESUMES_MESSAGE =
+  'This looks like more than one person’s resume. Upload just yours, one resume at a time.'
+
 export function resumeRejectionMessage(check: ResumeCheck) {
+  if (check.several) return SEVERAL_RESUMES_MESSAGE
   const kind = check.missing.find((entry) => entry.startsWith('it reads more like'))
   const absent = check.missing.filter((entry) => entry !== kind).slice(0, kind ? 2 : 3)
   const parts = ['This doesn’t look like a resume.']

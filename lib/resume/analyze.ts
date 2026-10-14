@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto'
+import { reserveProviderBudget } from '@/lib/ai/budget'
 import { AiRequestError, activeModel, isAiConfigured, resolveProvider } from '@/lib/ai/client'
-import { type ProviderConfig } from '@/lib/ai/config'
-import { checkSharedLimit } from '@/lib/security/rate-limit'
 import { REVIEW_VERSION, requestResumeReview } from '@/lib/ai/review'
 import { readAnalysis, writeAnalysis } from './analysis-cache'
 import { buildAtsReport } from './ats'
@@ -91,16 +90,6 @@ async function aiAnalysis(
 ): Promise<Analysis> {
   const review = await requestResumeReview(resume, jobDescription)
   return assembleAiAnalysis(resume, jobDescription, ats, review, activeModel())
-}
-
-const DAY_MS = 24 * 60 * 60_000
-
-async function reserveProviderBudget(provider: ProviderConfig) {
-  const scope = `${provider.name}:${provider.model}`
-  const perMinute = await checkSharedLimit(`${scope}:minute`, provider.budgetPerMinute, 60_000)
-  if (!perMinute.allowed) return false
-  const perDay = await checkSharedLimit(`${scope}:day`, provider.budgetPerDay, DAY_MS)
-  return perDay.allowed
 }
 
 async function analyse(resume: string, jobDescription: string): Promise<Analysis> {
