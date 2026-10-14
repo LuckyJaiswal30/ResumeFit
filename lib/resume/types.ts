@@ -54,6 +54,37 @@ export type MatchReport = {
 
 export type AnalysisSource = 'ai' | 'keyword'
 
+export type TitleVerdict = 'match' | 'headline' | 'close' | 'different'
+
+export type TitleCheck = {
+  posting: string
+  postingLevel: string | null
+  latest: string | null
+  verdict: TitleVerdict
+  levelGap: boolean
+}
+
+export type BulletPlacement = {
+  role: string
+  bullet: string
+  position: number
+  total: number
+  older: boolean
+}
+
+export type PostingPriority = {
+  label: string
+  importance: Importance
+  coverage: Coverage
+  placement: BulletPlacement | null
+}
+
+export type Tailoring = {
+  priorities: PostingPriority[]
+  opener: string | null
+  skills: { current: string[]; suggested: string[]; prefix: string } | null
+}
+
 export type Analysis = {
   source: AnalysisSource
   model: string | null
@@ -63,4 +94,6 @@ export type Analysis = {
   findings: Finding[]
   phrasing: PhrasingGap[]
   rewrites: BulletRewrite[]
+  title?: TitleCheck | null
+  tailoring?: Tailoring | null
 }
