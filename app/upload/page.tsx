@@ -1,7 +1,7 @@
 'use client'
 
 import { ChangeEvent, DragEvent, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, FileText, Upload, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, FileImage, FileText, Upload, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SampleLink } from '@/components/sample-link'
@@ -9,8 +9,17 @@ import { storeAnalysisSession } from '@/lib/analysis-session'
 import type { Analysis } from '@/lib/resume/types'
 import { SAMPLE_POSTING } from '@/lib/samples/sample-posting'
 import { SAMPLE_RESUME_FILE } from '@/lib/samples/sample-resume'
+import {
+  ACCEPTED_FILES,
+  describeFiles,
+  fileKey,
+  isImage,
+  MAX_PAGES,
+  prepareFiles,
+} from '@/lib/prepare-upload'
 
 const MAX_JOB_LENGTH = 40_000
+const MAX_RESUME_LENGTH = 80_000
 
 async function readJson(response: Response): Promise<{ error?: string; [key: string]: unknown }> {
   try {
@@ -28,7 +37,10 @@ function fallbackMessage(response: Response, fallback: string) {
 
 export default function UploadPage() {
   const router = useRouter()
-  const [file, setFile] = useState<File | null>(null)
+  const [files, setFiles] = useState<File[]>([])
+  const [pasting, setPasting] = useState(false)
+  const [pasted, setPasted] = useState('')
+  const [preparing, setPreparing] = useState(false)
   const [job, setJob] = useState('')
   const [error, setError] = useState('')
   const [dragging, setDragging] = useState(false)
@@ -36,19 +48,49 @@ export default function UploadPage() {
   const [step, setStep] = useState('')
   const inFlightRef = useRef(false)
 
-  const addFile = (selected?: File) => {
-    if (!selected) return
-    if (!/\.(pdf|docx|txt)$/i.test(selected.name))
-      return setError('That has to be a PDF, DOCX or TXT.')
-    if (selected.size > 4 * 1024 * 1024)
-      return setError('That file is over 4 MB. Try a smaller export.')
+  const addFiles = async (incoming: File[]) => {
+    if (incoming.length === 0) return
+    setPreparing(true)
+    const prepared = await prepareFiles(incoming, files)
+    setPreparing(false)
+    if ('error' in prepared) return setError(prepared.error)
     setError('')
-    setFile(selected)
+    setFiles(prepared.files)
+  }
+
+  const removeFile = (index: number) => setFiles(files.filter((_, at) => at !== index))
+
+  const readResumeText = async () => {
+    if (pasting) return pasted.trim()
+
+    const form = new FormData()
+    for (const entry of files) form.append('resume', entry)
+    const extracted = await fetch('/api/extract-text', { method: 'POST', body: form })
+    const extractedBody = await readJson(extracted)
+    if (!extracted.ok || typeof extractedBody.text !== 'string') {
+      throw new Error(
+        extractedBody.error ??
+          fallbackMessage(
+            extracted,
+            extracted.status === 413
+              ? 'That file is over 4 MB. Try a smaller export.'
+              : 'That file could not be read.',
+          ),
+      )
+    }
+    return extractedBody.text
   }
 
   const submit = async () => {
-    if (inFlightRef.current) return
-    if (!file) return setError('Add your resume first.')
+    if (inFlightRef.current || preparing) return
+    if (pasting) {
+      if (pasted.trim().length < 80)
+        return setError('Paste your whole resume, not just a line or two.')
+      if (pasted.trim().length > MAX_RESUME_LENGTH)
+        return setError('That resume is too long. Keep it under 80,000 characters.')
+    } else if (files.length === 0) {
+      return setError('Add your resume first.')
+    }
     if (job.trim().length < 80) {
       return setError('Too short to compare. Paste the whole posting.')
     }
@@ -62,27 +104,13 @@ export default function UploadPage() {
 
     try {
       setStep('Reading your resume')
-      const form = new FormData()
-      form.append('resume', file)
-      const extracted = await fetch('/api/extract-text', { method: 'POST', body: form })
-      const extractedBody = await readJson(extracted)
-      if (!extracted.ok || typeof extractedBody.text !== 'string') {
-        throw new Error(
-          extractedBody.error ??
-            fallbackMessage(
-              extracted,
-              extracted.status === 413
-                ? 'That file is over 4 MB. Try a smaller export.'
-                : 'That file could not be read.',
-            ),
-        )
-      }
+      const resume = await readResumeText()
 
       setStep('Comparing it to the posting')
       const analyzed = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resume: extractedBody.text, jobDescription: job.trim() }),
+        body: JSON.stringify({ resume, jobDescription: job.trim() }),
       })
       const analyzedBody = await readJson(analyzed)
       if (!analyzed.ok || !analyzedBody.analysis) {
@@ -93,7 +121,7 @@ export default function UploadPage() {
 
       storeAnalysisSession({
         analysis: analyzedBody.analysis as Analysis,
-        fileName: file.name,
+        fileName: pasting ? 'Pasted resume' : describeFiles(files),
         completedAt: Date.now(),
       })
       router.push('/results')
@@ -110,7 +138,8 @@ export default function UploadPage() {
       const response = await fetch(`/samples/${SAMPLE_RESUME_FILE}`)
       if (!response.ok) throw new Error('sample missing')
       const blob = await response.blob()
-      setFile(new File([blob], SAMPLE_RESUME_FILE, { type: 'application/pdf' }))
+      setFiles([new File([blob], SAMPLE_RESUME_FILE, { type: 'application/pdf' })])
+      setPasting(false)
       setJob(SAMPLE_POSTING)
       setError('')
     } catch {
@@ -121,7 +150,7 @@ export default function UploadPage() {
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     setDragging(false)
-    addFile(event.dataTransfer.files?.[0])
+    void addFiles(Array.from(event.dataTransfer.files ?? []))
   }
 
   return (
@@ -158,71 +187,123 @@ export default function UploadPage() {
           <section className="mt-14 border-t border-border py-8 sm:mt-20 sm:py-10">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
               <div>
-                <div>
-                  <p className="text-sm font-semibold">Your resume</p>
-                  <p className="mt-1 text-sm text-muted-foreground">PDF, DOCX or TXT, up to 4 MB</p>
-                </div>
-                <div
-                  onDragOver={(event) => {
-                    event.preventDefault()
-                    setDragging(true)
-                  }}
-                  onDragLeave={(event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                      setDragging(false)
-                    }
-                  }}
-                  onDrop={onDrop}
-                  className={`mt-6 rounded-2xl border-2 border-dashed p-8 transition has-[input:focus-visible]:ring-4 has-[input:focus-visible]:ring-ring/30 sm:p-10 ${dragging ? 'border-primary bg-accent' : 'border-input bg-card'}`}
-                >
-                  <input
-                    id="resume-upload"
-                    type="file"
-                    accept=".pdf,.docx,.txt"
-                    className="sr-only"
-                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                      addFile(event.target.files?.[0])
-                      event.target.value = ''
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold">Your resume</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {pasting
+                        ? 'All of it, contact details included.'
+                        : `PDF, Word, TXT, or photos of up to ${MAX_PAGES} pages. 4 MB in all.`}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPasting(!pasting)
+                      setError('')
                     }}
-                  />
-                  {file ? (
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex min-w-0 items-center gap-3 text-left">
-                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-                          <FileText aria-hidden="true" />
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{file.name}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">Ready to read</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setFile(null)}
-                        className="rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        aria-label="Remove resume"
-                      >
-                        <X aria-hidden="true" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-accent text-primary">
-                        <Upload aria-hidden="true" />
-                      </span>
-                      <p className="mt-4 text-sm font-medium">Drop your resume here</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        or{' '}
-                        <label
-                          htmlFor="resume-upload"
-                          className="cursor-pointer font-medium text-primary underline underline-offset-4"
-                        >
-                          browse files
-                        </label>
-                      </p>
-                    </div>
-                  )}
+                    className="shrink-0 rounded-sm text-xs font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
+                  >
+                    {pasting ? 'Upload a file instead' : 'Paste text instead'}
+                  </button>
                 </div>
+                {pasting ? (
+                  <textarea
+                    value={pasted}
+                    onChange={(event) => setPasted(event.target.value)}
+                    placeholder="Paste your resume here..."
+                    className="mt-6 min-h-56 w-full resize-y rounded-2xl border border-input bg-card p-5 text-sm leading-6 outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-ring/15"
+                    aria-label="Resume text"
+                  />
+                ) : (
+                  <div
+                    onDragOver={(event) => {
+                      event.preventDefault()
+                      setDragging(true)
+                    }}
+                    onDragLeave={(event) => {
+                      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                        setDragging(false)
+                      }
+                    }}
+                    onDrop={onDrop}
+                    className={`mt-6 rounded-2xl border-2 border-dashed p-8 transition has-[input:focus-visible]:ring-4 has-[input:focus-visible]:ring-ring/30 sm:p-10 ${dragging ? 'border-primary bg-accent' : 'border-input bg-card'}`}
+                  >
+                    <input
+                      id="resume-upload"
+                      type="file"
+                      accept={ACCEPTED_FILES}
+                      multiple
+                      className="sr-only"
+                      onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                        void addFiles(Array.from(event.target.files ?? []))
+                        event.target.value = ''
+                      }}
+                    />
+                    {files.length > 0 ? (
+                      <div className="flex flex-col gap-4">
+                        {files.map((entry, index) => (
+                          <div
+                            key={fileKey(entry)}
+                            className="flex items-center justify-between gap-4"
+                          >
+                            <div className="flex min-w-0 items-center gap-3 text-left">
+                              <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
+                                {isImage(entry) ? (
+                                  <FileImage aria-hidden="true" />
+                                ) : (
+                                  <FileText aria-hidden="true" />
+                                )}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium">{entry.name}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  {files.length > 1 ? `Page ${index + 1}` : 'Ready to read'}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index)}
+                              className="rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                              aria-label={
+                                files.length > 1 ? `Remove page ${index + 1}` : 'Remove resume'
+                              }
+                            >
+                              <X aria-hidden="true" />
+                            </button>
+                          </div>
+                        ))}
+                        {isImage(files[0]) && files.length < MAX_PAGES && (
+                          <label
+                            htmlFor="resume-upload"
+                            className="cursor-pointer self-start text-sm font-medium text-primary underline underline-offset-4"
+                          >
+                            Add another page
+                          </label>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <span className="mx-auto flex size-11 items-center justify-center rounded-xl bg-accent text-primary">
+                          <Upload aria-hidden="true" />
+                        </span>
+                        <p className="mt-4 text-sm font-medium">
+                          {preparing ? 'Getting your photos ready...' : 'Drop your resume here'}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          or{' '}
+                          <label
+                            htmlFor="resume-upload"
+                            className="cursor-pointer font-medium text-primary underline underline-offset-4"
+                          >
+                            browse files
+                          </label>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -276,8 +357,8 @@ export default function UploadPage() {
               <button
                 type="button"
                 onClick={submit}
-                disabled={loading}
-                aria-busy={loading}
+                disabled={loading || preparing}
+                aria-busy={loading || preparing}
                 className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30 disabled:cursor-wait disabled:opacity-70"
               >
                 {loading ? `${step}...` : 'Start analysis'}{' '}
