@@ -6,6 +6,25 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SampleLink } from '@/components/sample-link'
 import { storeAnalysisSession } from '@/lib/analysis-session'
+import type { Analysis } from '@/lib/resume/types'
+import { SAMPLE_POSTING } from '@/lib/samples/sample-posting'
+import { SAMPLE_RESUME_FILE } from '@/lib/samples/sample-resume'
+
+const MAX_JOB_LENGTH = 40_000
+
+async function readJson(response: Response): Promise<{ error?: string; [key: string]: unknown }> {
+  try {
+    return await response.json()
+  } catch {
+    return {}
+  }
+}
+
+function fallbackMessage(response: Response, fallback: string) {
+  if (response.status === 429)
+    return 'Too many attempts in a short space of time. Try again in a few minutes.'
+  return fallback
+}
 
 export default function UploadPage() {
   const router = useRouter()
@@ -33,6 +52,9 @@ export default function UploadPage() {
     if (job.trim().length < 80) {
       return setError('Too short to compare. Paste the whole posting.')
     }
+    if (job.trim().length > MAX_JOB_LENGTH) {
+      return setError('That posting is too long. Keep it under 40,000 characters.')
+    }
 
     inFlightRef.current = true
     setError('')
@@ -43,8 +65,18 @@ export default function UploadPage() {
       const form = new FormData()
       form.append('resume', file)
       const extracted = await fetch('/api/extract-text', { method: 'POST', body: form })
-      const extractedBody = await extracted.json()
-      if (!extracted.ok) throw new Error(extractedBody.error ?? 'That file could not be read.')
+      const extractedBody = await readJson(extracted)
+      if (!extracted.ok || typeof extractedBody.text !== 'string') {
+        throw new Error(
+          extractedBody.error ??
+            fallbackMessage(
+              extracted,
+              extracted.status === 413
+                ? 'That file is over 4 MB. Try a smaller export.'
+                : 'That file could not be read.',
+            ),
+        )
+      }
 
       setStep('Comparing it to the posting')
       const analyzed = await fetch('/api/analyze', {
@@ -52,11 +84,15 @@ export default function UploadPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resume: extractedBody.text, jobDescription: job.trim() }),
       })
-      const analyzedBody = await analyzed.json()
-      if (!analyzed.ok) throw new Error(analyzedBody.error ?? 'The analysis didn’t finish.')
+      const analyzedBody = await readJson(analyzed)
+      if (!analyzed.ok || !analyzedBody.analysis) {
+        throw new Error(
+          analyzedBody.error ?? fallbackMessage(analyzed, 'The analysis didn’t finish. Try again.'),
+        )
+      }
 
       storeAnalysisSession({
-        analysis: analyzedBody.analysis,
+        analysis: analyzedBody.analysis as Analysis,
         fileName: file.name,
         completedAt: Date.now(),
       })
@@ -69,6 +105,19 @@ export default function UploadPage() {
     }
   }
 
+  const loadSample = async () => {
+    try {
+      const response = await fetch(`/samples/${SAMPLE_RESUME_FILE}`)
+      if (!response.ok) throw new Error('sample missing')
+      const blob = await response.blob()
+      setFile(new File([blob], SAMPLE_RESUME_FILE, { type: 'application/pdf' }))
+      setJob(SAMPLE_POSTING)
+      setError('')
+    } catch {
+      setError('The sample couldn’t be loaded. Try again, or upload your own resume.')
+    }
+  }
+
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     setDragging(false)
@@ -77,7 +126,7 @@ export default function UploadPage() {
 
   return (
     <main id="main" className="flex-1 bg-background text-foreground">
-      <header className="mx-auto flex h-20 max-w-7xl items-center justify-between border-b border-border px-5 sm:px-8 lg:px-10">
+      <header className="mx-auto flex h-20 max-w-[84rem] items-center justify-between border-b border-border px-5 sm:px-8 lg:px-10">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
@@ -95,8 +144,8 @@ export default function UploadPage() {
         </a>
       </header>
 
-      <div className="mx-auto max-w-7xl px-5 pb-24 pt-14 sm:px-8 sm:pt-20 lg:px-10">
-        <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-[84rem] px-5 pb-24 pt-14 sm:px-8 sm:pt-20 lg:px-10">
+        <div className="mx-auto max-w-[84rem]">
           <div className="mx-auto mt-12 max-w-2xl text-center sm:mt-20">
             <h1 className="text-balance text-4xl font-semibold tracking-[-0.06em] sm:text-6xl">
               Compare your resume to the job.
@@ -118,7 +167,11 @@ export default function UploadPage() {
                     event.preventDefault()
                     setDragging(true)
                   }}
-                  onDragLeave={() => setDragging(false)}
+                  onDragLeave={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                      setDragging(false)
+                    }
+                  }}
                   onDrop={onDrop}
                   className={`mt-6 rounded-2xl border-2 border-dashed p-8 transition has-[input:focus-visible]:ring-4 has-[input:focus-visible]:ring-ring/30 sm:p-10 ${dragging ? 'border-primary bg-accent' : 'border-input bg-card'}`}
                 >
@@ -127,9 +180,10 @@ export default function UploadPage() {
                     type="file"
                     accept=".pdf,.docx,.txt"
                     className="sr-only"
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
                       addFile(event.target.files?.[0])
-                    }
+                      event.target.value = ''
+                    }}
                   />
                   {file ? (
                     <div className="flex items-center justify-between gap-4">
@@ -187,10 +241,16 @@ export default function UploadPage() {
                 />
                 <div className="mt-2 flex justify-between text-xs text-muted-foreground">
                   <span>The requirements section matters most</span>
-                  <span>{job.length} characters</span>
+                  <span className={job.length > MAX_JOB_LENGTH ? 'text-destructive' : undefined}>
+                    {job.length.toLocaleString('en-US')} / {MAX_JOB_LENGTH.toLocaleString('en-US')}{' '}
+                    characters
+                  </span>
                 </div>
               </div>
             </div>
+            <p className="sr-only" role="status">
+              {loading ? `${step}...` : ''}
+            </p>
             {error && (
               <p className="mt-6 text-sm text-destructive" role="alert">
                 {error}
@@ -201,12 +261,23 @@ export default function UploadPage() {
                 <p className="text-xs leading-5 text-muted-foreground">
                   Read once for this comparison. Never stored.
                 </p>
-                <SampleLink className="rounded-sm text-xs font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-4 focus-visible:ring-ring/30" />
+                <div className="flex flex-wrap gap-x-5 gap-y-1">
+                  <button
+                    type="button"
+                    onClick={loadSample}
+                    disabled={loading}
+                    className="rounded-sm text-xs font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-4 focus-visible:ring-ring/30 disabled:opacity-60"
+                  >
+                    Try the sample resume and posting
+                  </button>
+                  <SampleLink className="rounded-sm text-xs font-medium text-primary underline underline-offset-4 outline-none focus-visible:ring-4 focus-visible:ring-ring/30" />
+                </div>
               </div>
               <button
                 type="button"
                 onClick={submit}
                 disabled={loading}
+                aria-busy={loading}
                 className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30 disabled:cursor-wait disabled:opacity-70"
               >
                 {loading ? `${step}...` : 'Start analysis'}{' '}

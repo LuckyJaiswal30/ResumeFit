@@ -1,0 +1,59 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 2448 >>
+stream
+BT /F2 20 Tf 1 0 0 1 44 736 Tm (Nora Whitfield) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 710 Tm (Frontend Engineer, Leeds, UK) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 695.5 Tm (nora.whitfield@example.com | linkedin.com/in/norawhitfield | github.com/norawhitfield) Tj ET
+BT /F2 11 Tf 1 0 0 1 44 667 Tm (Summary) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 650 Tm (Frontend engineer with five years of experience building customer-facing web applications for) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 635.5 Tm (health and fintech teams. Most comfortable in React and TypeScript, and in the unglamorous work) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 621 Tm (that keeps a large interface consistent.) Tj ET
+BT /F2 11 Tf 1 0 0 1 44 592.5 Tm (Experience) Tj ET
+BT /F2 9.5 Tf 1 0 0 1 44 575.5 Tm (Software Engineer, Lumen Care, Leeds, UK | Mar 2022 - Present) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 561 Tm (• Led the migration of the patient portal from JavaScript to TypeScript across 60 screens.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 546.5 Tm (• Built and documented a shared component library now used by five product teams.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 532 Tm (• Cut largest contentful paint from 4.1s to 1.6s by splitting bundles and deferring scripts.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 517.5 Tm (• Ran weekly releases through GitHub Actions, with automated visual regression checks on every PR.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 503 Tm (• Built accessible checkout forms and checked them with VoiceOver and NVDA.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 488.5 Tm (• Onboarded two new engineers onto the component library.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 474 Tm (• Responsible for the checkout redesign.) Tj ET
+BT /F2 9.5 Tf 1 0 0 1 44 451.5 Tm (Frontend Developer, Brightwell Digital, Manchester, UK | Jun 2019 - Feb 2022) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 437 Tm (• Developed React interfaces for three client apps, from first sketch to launch.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 422.5 Tm (• Helped the team move to a shared Figma library and wrote some of the docs.) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 408 Tm (• Wrote Jest and Playwright tests for the booking flow, raising coverage from 31% to 78%.) Tj ET
+BT /F2 11 Tf 1 0 0 1 44 379.5 Tm (Education) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 362.5 Tm (BSc Computer Science, University of Leeds, 2019) Tj ET
+BT /F2 11 Tf 1 0 0 1 44 334 Tm (Skills) Tj ET
+BT /F1 9.5 Tf 1 0 0 1 44 317 Tm (React, TypeScript, JavaScript, Next.js, GraphQL, Jest, Playwright, GitHub Actions, Storybook, Figma) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000002751 00000 n 
+0000002848 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+2950
+%%EOF
