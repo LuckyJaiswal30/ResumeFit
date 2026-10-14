@@ -8,9 +8,12 @@ import { SampleNote } from '@/components/results/sample-note'
 import { AtsReport } from '@/components/results/ats-report'
 import { FindingList } from '@/components/results/finding-list'
 import { PriorityList } from '@/components/results/priority-list'
-import { FitScore } from '@/components/results/fit-score'
+import { Tailoring } from '@/components/results/tailoring'
+import { TitleCheck } from '@/components/results/title-check'
+import { SectionNav, type SectionLink } from '@/components/results/section-nav'
+import { Verdict } from '@/components/results/verdict'
 import { PhrasingList } from '@/components/results/phrasing-list'
-import { RequirementList } from '@/components/results/requirement-list'
+import { Requirements } from '@/components/results/requirements'
 import { RewriteList } from '@/components/results/rewrite-list'
 import { DownloadSummary } from '@/components/results/download-summary'
 import { buildPriorities } from '@/lib/resume/priorities'
@@ -22,7 +25,7 @@ import {
 
 function ResultsHeader() {
   return (
-    <header className="mx-auto flex h-20 max-w-5xl items-center justify-between border-b border-border px-5 sm:px-8">
+    <header className="mx-auto flex h-20 max-w-[84rem] items-center justify-between border-b border-border px-5 sm:px-8">
       <Link href="/" className="text-[17px] font-semibold tracking-[-0.04em]">
         resumefit<span className="text-primary">.</span>
       </Link>
@@ -48,7 +51,7 @@ export default function ResultsPage() {
       <main id="main" className="flex-1">
         <ResultsHeader />
         <div
-          className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16"
+          className="mx-auto max-w-[84rem] px-5 pb-20 pt-12 sm:px-8 sm:pt-16"
           role="status"
           aria-label="Loading your analysis"
         >
@@ -82,7 +85,7 @@ export default function ResultsPage() {
     return (
       <main id="main" className="flex-1">
         <ResultsHeader />
-        <div className="mx-auto max-w-5xl px-5 py-24 sm:px-8">
+        <div className="mx-auto max-w-[84rem] px-5 py-24 sm:px-8">
           <div className="mx-auto max-w-md text-center">
             <h1 className="text-3xl font-semibold tracking-[-0.05em]">Nothing here yet</h1>
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
@@ -101,60 +104,76 @@ export default function ResultsPage() {
   }
 
   const { analysis, fileName, isSample } = session
-  const requirements = analysis.match.requirements
-  const covered = requirements.filter((item) => item.coverage !== 'missing')
-  const missing = requirements.filter((item) => item.coverage === 'missing')
-  const claimed = missing.filter((item) => item.evidence !== null)
-  const absent = missing.filter((item) => item.evidence === null)
   const priorities = buildPriorities(analysis)
+
+  const sections: SectionLink[] = [
+    ...(analysis.title ? [{ id: 'title', label: 'Job title' }] : []),
+    { id: 'requirements', label: 'Requirements' },
+    ...(analysis.tailoring ? [{ id: 'tailor', label: 'Tailor it' }] : []),
+    ...(analysis.phrasing.length > 0 ? [{ id: 'wording', label: 'Wording' }] : []),
+    ...(analysis.rewrites.length > 0 ? [{ id: 'rewrites', label: 'Rewrites' }] : []),
+    { id: 'parser', label: 'Formatting' },
+    { id: 'notes', label: 'Review notes' },
+  ]
 
   return (
     <main id="main" className="flex-1">
       <ResultsHeader />
-      <div className="mx-auto max-w-5xl px-5 pb-20 pt-12 sm:px-8 sm:pt-16">
-        <div className="mb-12">
-          <p className="mb-3 text-sm font-medium text-primary">Your analysis</p>
+      <div className="mx-auto max-w-[84rem] px-5 pb-24 pt-12 sm:px-8 sm:pt-16">
+        <div className="mb-10">
           <h1 className="text-balance text-4xl font-semibold tracking-[-0.06em] sm:text-5xl">
             How your resume lines up
           </h1>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <FileText className="size-4" aria-hidden="true" />
-              {fileName}
-              <span className="text-border">·</span>
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+              <FileText className="size-4 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 break-words">{fileName}</span>
+              <span aria-hidden="true" className="text-border">
+                ·
+              </span>
               <span>{analysis.source === 'ai' ? 'Full review' : 'Word match only'}</span>
+              {isSample && (
+                <span className="ml-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                  Example
+                </span>
+              )}
             </div>
             <DownloadSummary analysis={analysis} fileName={fileName} />
           </div>
         </div>
 
-        <FitScore match={analysis.match} covered={covered.length} missing={missing.length} />
+        <Verdict match={analysis.match} source={analysis.source} />
 
-        <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_360px]">
-          <div className="flex flex-col gap-12">
+        <SectionNav sections={sections} />
+
+        <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_340px] lg:gap-14">
+          <div className="flex min-w-0 flex-col gap-14">
             {isSample && <SampleNote />}
             <AnalysisSourceNote analysis={analysis} />
-            <RequirementList
-              title="Where you align"
-              description="The posting asks for these. Your resume shows them."
-              requirements={covered}
-            />
-            <RequirementList
-              title="Listed, but not shown"
-              description="You name these, but no work backs them up. One line usually fixes it."
-              requirements={claimed}
-            />
-            <RequirementList
-              title="Not there at all"
-              description="The posting asks for these. Your resume never mentions them."
-              requirements={absent}
-            />
+            {analysis.title && <TitleCheck check={analysis.title} />}
+            <div id="requirements" className="scroll-mt-28">
+              <Requirements requirements={analysis.match.requirements} source={analysis.source} />
+            </div>
+            {analysis.tailoring && <Tailoring tailoring={analysis.tailoring} />}
             <PhrasingList phrasing={analysis.phrasing} />
             <RewriteList rewrites={analysis.rewrites} />
             <AtsReport ats={analysis.ats} />
             <FindingList findings={analysis.findings} />
+            <div className="flex flex-col items-start gap-4 border-t border-border pt-10 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-sm text-sm leading-6 text-muted-foreground">
+                {isSample
+                  ? 'That was a made-up resume. Run it on yours to see where you stand.'
+                  : 'Applying to something else? Run the same resume against another posting.'}
+              </p>
+              <Link
+                href="/upload"
+                className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-4 focus-visible:ring-ring/30"
+              >
+                {isSample ? 'Check my own resume' : 'Compare another posting'}
+              </Link>
+            </div>
           </div>
-          <aside>
+          <aside className="order-first lg:order-none">
             <PriorityList actions={priorities} />
           </aside>
         </div>
