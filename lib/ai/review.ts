@@ -31,7 +31,8 @@ requirements: 6 to 10 entries, required ones first.
 - Merge duplicates. Label under 60 characters, naming the thing, not the sentence it came from.
 - Never list a bare verb or filler as a requirement: build, familiarity, strong, passion, fast-paced, team player. Phrase a real soft skill concretely, like "Mentoring junior engineers".
 - importance is "required" only for stated must-haves. Bonus, preferred, nice-to-have and "a plus" are "preferred".
-- coverage: "strong" if the resume demonstrates it in context, "partial" if evidence is thin or it is only a word in a skills list, "missing" if absent.
+- coverage: "strong" only if a bullet shows the candidate doing the thing, in context, in the posting's own terms. "partial" if the work is related but the exact thing is not named (a standard, level, tool or scale the posting asks for), if it is a single passing mention, or if it is only a word in a skills list. "missing" if absent. When unsure between strong and partial, choose partial.
+- Examples: testing with screen readers does not name WCAG, so partial. Onboarding two engineers is not sustained mentoring, so partial. A migration across 60 screens in the named language is strong.
 - For strong and partial, evidence is a short quote copied exactly from the resume. Never paraphrase inside the quote. For missing, evidence is null.
 - note: one sentence to the candidate, under 140 characters.
 
@@ -43,9 +44,15 @@ phrasing: up to 4 places where the resume demonstrates something the posting ask
 
 findings: up to 3 problems worth fixing, worst first. Sentence case titles. Detail under 250 characters.
 
-rewrites: up to 3 weak bullets that already exist in the resume. "original" copied exactly, without its bullet marker. The rewrite keeps every fact and adds no number, metric, technology, employer, title, scale or outcome that is not already in the original. If there is no measurable result, sharpen the verb instead of inventing one.
+rewrites: up to 3 weak bullets that already exist in the resume. "original" copied exactly, without its bullet marker.
+- Change the verb and tighten the wording only. Keep the same nouns, the same scope and the same facts.
+- Never add scope, context or outcome: no "from X to Y", no "end to end", no "across teams", no ownership claims, no number, metric, technology, employer, title or scale that is not already in the original.
+- Never raise the claim: "helped" stays a supporting role, "responsible for" does not become "led", "contributed" does not become "owned".
+- If a bullet cannot be sharpened without adding something, leave it out. The "reason" must not say that nothing was added.
 
 Always return all four keys, empty lists if needed. Be concise so nothing is cut off. Never invent experience. Plain language, sentence case, no marketing tone.`
+
+export const REVIEW_VERSION = 2
 
 export async function requestResumeReview(resume: string, jobDescription: string) {
   const budgeted = splitBudget(resume, jobDescription)

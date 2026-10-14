@@ -1,4 +1,5 @@
 import { buildPriorities } from './priorities'
+import { BURIED_POSITION } from './tailor'
 import type { Analysis, Requirement } from './types'
 
 function section(title: string, lines: string[]) {
@@ -32,6 +33,38 @@ export function buildSummary(analysis: Analysis, fileName: string): string {
       buildPriorities(analysis).map(
         (action, i) => `${i + 1}. **${action.title}** — ${action.detail}`,
       ),
+    ),
+    ...section(
+      'Job title',
+      analysis.title
+        ? [
+            `- The posting: ${analysis.title.posting}`,
+            `- Your latest title: ${analysis.title.latest ?? 'not found'}`,
+          ]
+        : [],
+    ),
+    ...section(
+      'Tailor it to this posting',
+      analysis.tailoring
+        ? [
+            ...analysis.tailoring.priorities.map((item, i) => {
+              const move =
+                item.placement && item.placement.position >= BURIED_POSITION
+                  ? ` — move "${item.placement.bullet}" to the top of ${item.placement.role}`
+                  : ''
+              return `${i + 1}. ${item.label}${move}`
+            }),
+            ...(analysis.tailoring.opener
+              ? ['', `Opening line: ${analysis.tailoring.opener}`]
+              : []),
+            ...(analysis.tailoring.skills
+              ? [
+                  '',
+                  `Skills order: ${analysis.tailoring.skills.prefix}${analysis.tailoring.skills.suggested.join(', ')}`,
+                ]
+              : []),
+          ]
+        : [],
     ),
     ...section('Where you align', covered.map(requirementLine)),
     ...section('Listed, but not shown', claimed.map(requirementLine)),

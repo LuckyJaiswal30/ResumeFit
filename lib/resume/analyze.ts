@@ -2,31 +2,20 @@ import { createHash } from 'node:crypto'
 import { AiRequestError, activeModel, isAiConfigured, resolveProvider } from '@/lib/ai/client'
 import { type ProviderConfig } from '@/lib/ai/config'
 import { checkSharedLimit } from '@/lib/security/rate-limit'
-import { requestResumeReview } from '@/lib/ai/review'
+import { REVIEW_VERSION, requestResumeReview } from '@/lib/ai/review'
 import { readAnalysis, writeAnalysis } from './analysis-cache'
 import { buildAtsReport } from './ats'
-import {
-  addsUnsupportedNumber,
-  groundRequirements,
-  keywordRequirements,
-  scoreRequirements,
-  verifyEvidence,
-} from './match'
-import type { Analysis, AtsReport, BulletRewrite, Finding, PhrasingGap, Requirement } from './types'
+import { assembleAiAnalysis } from './assemble'
+import { keywordRequirements, scoreRequirements } from './match'
+import { buildTailoring } from './tailor'
+import { checkTitle } from './title'
+import type { Analysis, AtsReport, Finding, Requirement } from './types'
 
 function cacheKey(resume: string, jobDescription: string) {
   const provider = resolveProvider()
   return createHash('sha256')
-    .update(`${provider?.name}:${provider?.model}:${resume}:${jobDescription}`)
+    .update(`v${REVIEW_VERSION}:${provider?.name}:${provider?.model}:${resume}:${jobDescription}`)
     .digest('hex')
-}
-
-function slug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 48)
 }
 
 const ATS_PROBLEM: Record<string, string> = {
@@ -84,6 +73,8 @@ function keywordAnalysis(
     aiError,
     match: {
       ...match,
+      summary:
+        'This only counts the posting’s key words in your resume. It can’t judge how well you show them, so treat it as a rough guide.',
       breakdown: match.breakdown.map((part) => ({ ...part, label: 'Term coverage' })),
     },
     ats,
@@ -99,50 +90,7 @@ async function aiAnalysis(
   ats: AtsReport,
 ): Promise<Analysis> {
   const review = await requestResumeReview(resume, jobDescription)
-
-  const requirements = groundRequirements(
-    resume,
-    review.requirements.map((item, index) => ({
-      id: `${index}-${slug(item.label)}`,
-      label: item.label,
-      category: item.category,
-      importance: item.importance,
-      coverage: item.coverage,
-      evidence: item.evidence,
-      evidenceVerified: false,
-      note: item.note,
-    })),
-  )
-
-  const rewrites: BulletRewrite[] = review.rewrites.filter(
-    (item) =>
-      verifyEvidence(resume, item.original) && !addsUnsupportedNumber(item.original, item.rewrite),
-  )
-
-  const findings: Finding[] = review.findings.map((item, index) => ({
-    id: `${index}-${slug(item.title)}`,
-    ...item,
-  }))
-
-  const phrasing: PhrasingGap[] = review.phrasing
-    .filter(
-      (item) =>
-        verifyEvidence(resume, item.yours) &&
-        verifyEvidence(jobDescription, item.posting) &&
-        item.yours.toLowerCase() !== item.posting.toLowerCase(),
-    )
-    .map((item, index) => ({ id: `${index}-${slug(item.posting)}`, ...item }))
-
-  return {
-    source: 'ai',
-    model: activeModel(),
-    aiError: null,
-    match: scoreRequirements(requirements),
-    ats,
-    findings,
-    phrasing,
-    rewrites,
-  }
+  return assembleAiAnalysis(resume, jobDescription, ats, review, activeModel())
 }
 
 const DAY_MS = 24 * 60 * 60_000
@@ -155,7 +103,7 @@ async function reserveProviderBudget(provider: ProviderConfig) {
   return perDay.allowed
 }
 
-export async function buildAnalysis(resume: string, jobDescription: string): Promise<Analysis> {
+async function analyse(resume: string, jobDescription: string): Promise<Analysis> {
   const ats = buildAtsReport(resume)
   if (!isAiConfigured()) return keywordAnalysis(resume, jobDescription, ats, null)
 
@@ -182,4 +130,10 @@ export async function buildAnalysis(resume: string, jobDescription: string): Pro
       error instanceof AiRequestError ? error.message : 'the response could not be used'
     return keywordAnalysis(resume, jobDescription, ats, detail)
   }
+}
+
+export async function buildAnalysis(resume: string, jobDescription: string): Promise<Analysis> {
+  const analysis = await analyse(resume, jobDescription)
+  const withTitle = { ...analysis, title: checkTitle(resume, jobDescription) }
+  return { ...withTitle, tailoring: buildTailoring(withTitle, resume) }
 }
