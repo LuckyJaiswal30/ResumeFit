@@ -1,174 +1,180 @@
 # ResumeFit
 
-Compares a resume against a job posting and reports only what it can prove.
+[![CI](https://github.com/LuckyJaiswal30/ResumeFit/actions/workflows/ci.yml/badge.svg)](https://github.com/LuckyJaiswal30/ResumeFit/actions/workflows/ci.yml)
 
-Most resume checkers match keywords. If "Kubernetes" appears in your
-skills list, you match Kubernetes. ResumeFit refuses to score it that
-way: a requirement only counts when the analysis can quote the line in
-your experience that demonstrates it. Anything it cannot place is moved
-into the gaps instead.
+**Compare a resume against a job posting and see which requirements it actually proves.**
 
-That distinction is not theoretical. On a real run, the model claimed
-Next.js, Jest and Figma as covered, citing nothing but the words from a
-skills list. All three were rejected and the score dropped accordingly.
+**Live:** [resumefit.imlucky.dev](https://resumefit.imlucky.dev)
 
-## What makes it different
+Most resume checkers match keywords, so a tool listed under "Skills" counts as experience. ResumeFit only counts a requirement when it can quote the line in your resume that demonstrates it. Everything else is reported as a gap.
 
-**Every match is quoted.** Claims come back with the exact sentence from
-your resume that backs them. Quotes are verified against your text
-before display, so a line the model invented never reaches the page.
+---
 
-**Missing and unproven are not the same problem.** A requirement your
-resume never mentions needs experience you may not have. One you listed
-but never demonstrated needs a sentence. The results page separates them,
-because the fix is completely different.
+## Contents
 
-**Nothing gets invented.** Suggested bullet rewrites are filtered: any
-rewrite introducing a number that is not in your original is discarded
-before you see it. A bullet with no measurable result gets a stronger
-verb, not a fabricated percentage.
+- [What you get](#what-you-get)
+- [What you can upload](#what-you-can-upload)
+- [How it works](#how-it-works)
+- [Getting started](#getting-started)
+- [Configuration](#configuration)
+- [Scripts](#scripts)
+- [Project structure](#project-structure)
+- [Limits](#limits)
+- [Contributing](#contributing)
 
-**It says when it did not really read anything.** If no model is
-configured or the call fails, the analysis falls back to comparing
-wording, and the page states that plainly rather than passing a keyword
-match off as a considered read.
+---
 
-## Trying it without uploading anything
+## What you get
 
-**See an example** on the home and upload pages opens a finished
-analysis. It is real output, produced by running an invented resume
-against a real posting once and saving the response, so every section is
-populated including two skills that were claimed but never demonstrated.
-The fixture ships with the page and is read like any other result, so it
-makes no request and spends no quota.
+| In the report         | What it tells you                                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Verdict**           | Strong, partial or weak match, and how many must-haves you show.                                                                       |
+| **Quoted matches**    | Each match carries the exact line from your resume. Quotes are checked against your text, so an invented line never reaches the page.  |
+| **Two kinds of gap**  | "Listed, but not shown" (named in your skills, nothing backs it up) is kept apart from "Not there at all", because the fixes differ.   |
+| **Fix-first list**    | What to change first, with starter wording for any bullet you need to write.                                                           |
+| **Rewrites**          | Sharper versions of weak bullets. A rewrite is dropped if it adds a number or new claims, so scope you never had doesn't creep in.     |
+| **Tailoring**         | Where your proof for each top requirement sits, an opening line built from what you can prove, and your skills reordered for the role. |
+| **Job title check**   | How your job titles compare with the posting's, since recruiters read titles first.                                                    |
+| **Parser report**     | How readable the resume is to applicant-tracking software.                                                                             |
+| **Markdown download** | The whole report as a file, since results only live in your browser tab.                                                               |
 
-The results page also ranks what to fix first, derived from the analysis
-rather than from a second model call. A requirement you named but never
-evidenced ranks above one you never mentioned: both cost the same in
-score, but the first is a bullet you can write tonight. Suggested
-rewrites can be copied, and the whole analysis downloads as a markdown
-file, since results otherwise live only in the tab that produced them.
+**No account, no storage.** Files are never saved.
 
-## The flow
+**Try it first.** "See an example" opens a saved analysis without any request. "Try the sample resume and posting" fills in a made-up resume and posting so you can run the real pipeline.
 
+**Works without a model.** With no API key, or if the model call fails, it compares wording only and says so on the page.
+
+---
+
+## What you can upload
+
+| Input                                        | How it's read                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **PDF**, one column or several               | Locally, in the order the PDF was written, so side-by-side columns are never mixed together. |
+| **Word** (`.docx`, `.doc`), **ODT**, **RTF** | Locally, keeping page headers, footers, text boxes and list bullets.                         |
+| **HTML**, **TXT**, **Markdown**              | Locally.                                                                                     |
+| **Photos** of up to five pages               | By Gemini. Large photos are shrunk in the browser first.                                     |
+| **Scanned PDFs** and image-only files        | By Gemini, as are PDFs with a scanned page or unreadable text.                               |
+| **Pasted text**                              | As is, with "Paste text instead" on the upload page.                                         |
+
+The file type is worked out from the file's contents, so a resume with the wrong extension, or none, still reads.
+
+**One person per upload.** Pages from two people's resumes, or a page that isn't part of a resume, are turned away rather than blended into one report.
+
+---
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["Resume file,<br/>photos or text"] --> B["/api/extract-text<br/>read the file,<br/>check it's one resume"]
+    B --> C["/api/analyze<br/>check the posting,<br/>match and quote"]
+    P["Job posting"] --> C
+    C --> D["/results<br/>the report"]
 ```
-  /upload                        /api/extract-text            /api/analyze
-  ┌────────────────┐             ┌──────────────────┐        ┌──────────────────┐
-  │ resume file    │──────────▶  │ PDF / DOCX / TXT │───────▶│ requirements     │
-  │ job posting    │             │ → plain text     │        │ pulled from post │
-  └────────────────┘             │ reject non-CVs   │        │ matched + quoted │
-                                 └──────────────────┘        │ quotes verified  │
-                                                             └────────┬─────────┘
-                                                                      ▼
-                                                             /results
-                                                             score, aligned,
-                                                             listed-but-unproven,
-                                                             absent, rewrites,
-                                                             parser report
-```
 
-Results are handed between pages through session storage. They belong to
-the tab that produced them and are never written to a server.
+1. **Read.** `POST /api/extract-text` turns the upload into plain text and rejects anything that isn't a resume. Photos and scans go to Gemini, which also reports each page's kind and owner so mixed uploads can be refused. Pasted text skips this step.
+2. **Analyze.** `POST /api/analyze` rejects anything that isn't a job posting, then extracts the requirements, matches them to the resume, verifies every quote and scores the result.
+3. **Report.** `/results` shows the analysis. It is passed between pages in session storage and never written to a server.
 
-## Stack
+Both inputs are checked before the analysis call, so a wrong document costs no analysis quota and gets a specific reason: an invoice, a recipe, a cover letter, a posting uploaded as the resume, or two people's resumes together. Reading a photo or scan costs one extra model call.
 
-- Next.js 16 (App Router) on React 19
-- TypeScript 6, ESLint 10 with a flat config, Prettier
-- Tailwind CSS v4, tokens as CSS custom properties, no component library
-- `pdfjs-dist` for PDF text, `mammoth` for DOCX, `zod` for response
-  validation
-- `node --test` for the suite, no test framework dependency
-- Deployed on Vercel
+---
 
-## Model providers
+## Getting started
 
-Gemini is the provider this runs on. `gemini-3.5-flash-lite` is the
-default model.
-
-Groq is supported as a **manual fallback**, not an active second
-provider. There is no automatic failover: if Gemini fails or its budget
-is spent, the app degrades to keyword matching rather than switching.
-Groq is reached only by setting `AI_PROVIDER=groq` with a `GROQ_API_KEY`
-present, which is useful during a Gemini outage or for local work. Its
-request shape is covered by tests, though it has not been exercised
-against the live Groq API here. It is also the weaker option: roughly 40
-analyses a day against Gemini's several hundred, and a smaller prompt
-budget that truncates long resumes.
-
-## Keeping model usage down
-
-This is built to run on a free tier, so three things guard the quota.
-
-**Caching.** Results are keyed by a SHA-256 hash of the provider, model,
-resume and posting. An identical re-run is served from the store and
-costs nothing. The cache lives in Upstash Redis when configured, so a
-second instance or a cold start still gets the hit, and falls back to an
-in-process map otherwise.
-
-**A shared allowance.** Per-client rate limiting cannot protect a quota
-that every visitor draws from, so analysis also reserves against a
-ceiling shared across everyone, keyed to the provider and model in use.
-Defaults sit under the published free-tier limits. Running out does not
-fail the request: it falls through to keyword matching with the reason
-attached.
-
-**No retry on a rate limit.** A 429 means the quota is gone, so retrying
-spends more of what just ran out. Timeouts and provider faults still get
-their one retry; rate limits do not.
-
-## Setup
+You need **Node.js 24** and **[pnpm](https://pnpm.io)**.
 
 ```bash
 pnpm install
-cp .env.example .env.local   # add GEMINI_API_KEY
+cp .env.example .env.local
 pnpm dev
 ```
 
-Without a key the app still runs. Analysis compares the wording of both
-documents and the results page says so. Every setting is listed in
-`.env.example`, including `AI_BUDGET_PER_MINUTE` and `AI_BUDGET_PER_DAY`
-for matching your own limits.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Checks
+The app runs without an API key, comparing wording only. Add `GEMINI_API_KEY` to `.env.local` for the full review and for reading photos and scans.
+
+---
+
+## Configuration
+
+Set these in `.env.local`. All are optional.
+
+| Variable                                      | Default                 | Purpose                                         |
+| --------------------------------------------- | ----------------------- | ----------------------------------------------- |
+| `AI_PROVIDER`                                 | `gemini`                | `gemini` or `groq`                              |
+| `GEMINI_API_KEY`, `GEMINI_MODEL`              | `gemini-3.5-flash-lite` | Gemini credentials and model, also reads photos |
+| `GROQ_API_KEY`, `GROQ_MODEL`                  | `openai/gpt-oss-20b`    | Groq credentials and model                      |
+| `AI_TEMPERATURE`                              | `0`                     | Sampling temperature                            |
+| `AI_TIMEOUT_MS`                               | `30000`                 | Per-request timeout                             |
+| `AI_MAX_PROMPT_CHARS`, `AI_MAX_OUTPUT_TOKENS` | per provider            | Prompt and response size limits                 |
+| `AI_CACHE_MINUTES`                            | `60`                    | How long an identical comparison is cached      |
+| `AI_BUDGET_PER_MINUTE`, `AI_BUDGET_PER_DAY`   | see below               | Shared request ceiling across all visitors      |
+| `UPSTASH_REDIS_REST_URL`, `..._TOKEN`         | unset                   | Shared cache and rate limiting across instances |
+
+Without Redis, caching and rate limiting use in-process memory, which is enough for one instance.
+
+### Providers
+
+Gemini is the default. Groq is a manual fallback, chosen only by setting `AI_PROVIDER=groq` with a key, and it can't read photos or scans. There is no automatic failover: when Gemini fails or its budget is spent, the app falls back to wording-only matching.
+
+| Provider | Free-tier limits                                 | Default budget  |
+| -------- | ------------------------------------------------ | --------------- |
+| Gemini   | 15 requests/min, 500/day, 250K tokens/min        | 10/min, 400/day |
+| Groq     | 30 requests/min, 1K/day, 8K tokens/min, 200K/day | 2/min, 35/day   |
+
+Groq runs out of tokens first: one review costs about 4,850, roughly 40 a day. Raise the budgets on a paid key.
+
+---
+
+## Scripts
+
+| Command             | Does                                                 |
+| ------------------- | ---------------------------------------------------- |
+| `pnpm dev`          | Start the development server                         |
+| `pnpm build`        | Build for production                                 |
+| `pnpm start`        | Serve the production build                           |
+| `pnpm test`         | Run the test suite (no network calls)                |
+| `pnpm lint`         | Lint with ESLint                                     |
+| `pnpm format:check` | Check formatting with Prettier (`pnpm format` fixes) |
+
+CI runs format, tests, lint, type-check and build on every push and pull request.
+
+---
+
+## Project structure
+
+| Path            | Contents                                                      |
+| --------------- | ------------------------------------------------------------- |
+| `app/`          | Pages and the two API routes                                  |
+| `components/`   | Shared UI, and `results/` for the report sections             |
+| `lib/resume/`   | File reading, resume and posting detection, matching, scoring |
+| `lib/ai/`       | Provider config, request client, prompt and response schemas  |
+| `lib/security/` | Rate limiting and the Upstash client                          |
+| `lib/samples/`  | The made-up sample resume and posting                         |
+| `types/`        | Type declarations for packages that ship none                 |
+| `tests/`        | `node --test` suite and fixtures                              |
+
+---
+
+## Limits
+
+- **Language:** English resumes only.
+- **Size:** files up to 4 MB. PDFs are read up to 30 pages. Password-protected PDFs are refused.
+- **Photos:** up to five per resume, sharing the 4 MB. GIF, BMP and AVIF are converted to JPEG in the browser; HEIC and TIFF only in Safari.
+- **Pages files:** read only through the PDF preview they carry.
+- **Telling people apart:** two people with the same name, or two unnamed pages with similar content, can't be told apart. Text that never goes to the model is refused only when it has two email addresses and repeats the Experience or Education heading.
+- **Quota:** free-tier model limits apply, so heavy traffic falls back to wording-only matching.
+
+---
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a pull request, run:
 
 ```bash
-pnpm test          # node --test, makes no network calls
-pnpm lint
-pnpm format:check
-pnpm exec tsc --noEmit
+pnpm format:check && pnpm test && pnpm lint && pnpm exec tsc --noEmit && pnpm build
 ```
 
-All four run in CI on every push. The suite is fully stubbed: a network
-monitor hooking `fetch`, `net.connect`, `tls.connect` and `dns.lookup`
-confirms zero outbound connections across the whole run, so running the
-tests never spends quota.
-
-## Layout
-
-| Path                   | What lives there                                                                   |
-| ---------------------- | ---------------------------------------------------------------------------------- |
-| `app/api/extract-text` | Reads PDF, DOCX and TXT; rejects anything that is not a resume                     |
-| `app/api/analyze`      | Scores a resume against a posting                                                  |
-| `lib/resume`           | Extraction, resume detection, matching, scoring, evidence grounding, parser report |
-| `lib/ai`               | Provider config, request client, review prompt and schemas                         |
-| `lib/security`         | Rate limiting and the shared Upstash client                                        |
-| `components/results`   | The results display                                                                |
-
-## Notes from building it
-
-The interesting problem here was not calling a model. It was not
-trusting it.
-
-An early version took the model's word for coverage, and it was
-generous: list a tool in your skills section and it would call that a
-match. The fix was to require a quote for every claim and verify the
-quote actually appears in the resume, with a tolerance for whitespace
-and light rewording. Claims that fail verification are demoted rather
-than dropped, which is why a "listed but not shown" category exists at
-all. That category came out of watching real output, not from planning.
-
-The second lesson was that a free tier fails in ways that are easy to
-make worse. Retrying a 429 sends another request into a quota that has
-already run out. Per-IP rate limiting does nothing for a shared budget.
-Both were real bugs found by reading the actual limits rather than
-assuming them.
+Please don't attach real resumes to issues. For questions, open an [issue](https://github.com/LuckyJaiswal30/ResumeFit/issues) or email [luckyjaiswal3405@gmail.com](mailto:luckyjaiswal3405@gmail.com).
