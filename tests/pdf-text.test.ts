@@ -150,3 +150,12 @@ describe('documents with no text layer', () => {
     assert.ok(text.trim().length < 80)
   })
 })
+
+describe('the caller’s bytes', () => {
+  it('are left readable after parsing, so a scan can still be sent on', async () => {
+    const bytes = makePdf([{ text: 'Jane Doe', x: 40, y: 50, size: 12 }])
+    const length = bytes.length
+    await extractPdfText(bytes)
+    assert.equal(bytes.length, length)
+  })
+})
