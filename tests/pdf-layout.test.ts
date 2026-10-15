@@ -160,3 +160,63 @@ describe('letter-spaced headings', () => {
     assert.deepEqual(layoutPage([item('Plan A to Z', 54, 700)]), ['Plan A to Z'])
   })
 })
+
+describe('kerned letter-spaced headings', () => {
+  it('closes up a heading with a kerned pair left together', () => {
+    assert.deepEqual(layoutPage([item('S U M M A RY', 54, 700)]), ['SUMMARY'])
+  })
+
+  it('leaves short words in capitals alone', () => {
+    assert.deepEqual(layoutPage([item('UX AND UI', 54, 700)]), ['UX AND UI'])
+  })
+})
+
+describe('bullets drawn as shapes', () => {
+  const page = (bullets: string[]) => [
+    item('EXPERIENCE', 51, 700),
+    item('Data Analyst, Harbor Pay', 51, 685),
+    item(bullets[0], 65, 670),
+    item('close from four days to one.', 65, 655),
+    item(bullets[1], 65, 640),
+    item('Junior Analyst, Meridian Insurance', 51, 615),
+    item(bullets[2], 65, 600),
+  ]
+
+  it('marks the start of each indented item and not its wrapped lines', () => {
+    const lines = layoutPage(
+      page([
+        'Built dbt models for payments, cutting the monthly',
+        'Built Looker dashboards used daily by the risk team.',
+        'Automated weekly claims reporting in Python.',
+      ]),
+    )
+    assert.deepEqual(lines, [
+      'EXPERIENCE',
+      'Data Analyst, Harbor Pay',
+      '• Built dbt models for payments, cutting the monthly',
+      'close from four days to one.',
+      '• Built Looker dashboards used daily by the risk team.',
+      'Junior Analyst, Meridian Insurance',
+      '• Automated weekly claims reporting in Python.',
+    ])
+  })
+
+  it('leaves a page alone when its bullets are already characters', () => {
+    const lines = layoutPage(
+      page(['• Built dbt models.', 'Built Looker dashboards.', 'Automated reports.']),
+    )
+    assert.equal(lines.filter((line) => line.startsWith('•')).length, 1)
+  })
+
+  it('never treats a second column as bullets', () => {
+    const lines = layoutPage([
+      item('SKILLS', 40, 700),
+      item('Python', 40, 685),
+      item('SQL', 40, 670),
+      item('Experience at Harbor Pay since 2021.', 210, 700),
+      item('Built dbt models for payments.', 210, 685),
+      item('Built Looker dashboards.', 210, 670),
+    ])
+    assert.ok(!lines.some((line) => line.startsWith('•')), lines.join('\n'))
+  })
+})

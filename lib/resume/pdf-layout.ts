@@ -1,3 +1,5 @@
+import { BULLET_LINE } from './bullets'
+
 export type TextItem = { text: string; x: number; y: number; width: number; size: number }
 
 type Row = { items: TextItem[]; y: number; size: number }
@@ -13,6 +15,7 @@ const MAX_JUMP_SHARE = 0.3
 const INTERLEAVE_GAP = 24
 const HEADING_SCALE = 1.2
 const SECTION_GAP_SCALE = 1.4
+const BULLET_INDENT = { min: 6, max: 30 }
 
 const CONTACT = /@|\+?\d[\d ()-]{7,}\d|linkedin|github|https?:|www\./i
 const DATE = /\b(?:19|20)\d{2}\b|\bpresent\b/i
@@ -27,26 +30,51 @@ function end(item: TextItem) {
   return item.x + item.width
 }
 
-// "W O R K" is how a letter-spaced heading comes out of the PDF. Close it back up.
+// Letters spread apart, as a letter-spaced heading comes out of a PDF: "W O R K", or with a
+// kerned pair left together, "S U M M A RY".
+function isSpacedOut(tokens: string[], minimum: number) {
+  if (tokens.length < minimum) return false
+  if (!tokens.every((token) => /^\p{L}{1,2}$/u.test(token))) return false
+  return tokens.filter((token) => [...token].length === 1).length / tokens.length >= 0.7
+}
+
 function closeLetterSpacing(text: string) {
-  const trimmed = text.trim()
-  return /^(?:\p{L} ){2,}\p{L}$/u.test(trimmed) ? trimmed.replaceAll(' ', '') : text
+  const tokens = text.trim().split(' ')
+  return isSpacedOut(tokens, 3) ? tokens.join('') : text
+}
+
+// The same, across items drawn one letter at a time: "S K I L L S".
+function closeSpacedRuns(line: string) {
+  const tokens = line.split(' ')
+  const out: string[] = []
+  let run: string[] = []
+  const flush = () => {
+    if (isSpacedOut(run, 4)) out.push(run.join(''))
+    else out.push(...run)
+    run = []
+  }
+  for (const token of tokens) {
+    if (/^\p{Lu}{1,2}$/u.test(token)) run.push(token)
+    else {
+      flush()
+      out.push(token)
+    }
+  }
+  flush()
+  return out.join(' ')
 }
 
 function joinItems(items: TextItem[]) {
-  return items
-    .reduce((line, item, index) => {
-      const text = closeLetterSpacing(item.text)
-      if (index === 0) return text
-      const previous = items[index - 1]
-      const gap = item.x - end(previous)
-      const spaced =
-        gap > Math.max(1, item.size * 0.15) && !line.endsWith(' ') && !text.startsWith(' ')
-      return line + (spaced ? ' ' : '') + text
-    }, '')
-    .replace(/\s+/g, ' ')
-    .replace(/(?<!\S)(?:\p{Lu} ){3,}\p{Lu}(?!\S)/gu, (run) => run.replaceAll(' ', ''))
-    .trim()
+  const joined = items.reduce((line, item, index) => {
+    const text = closeLetterSpacing(item.text)
+    if (index === 0) return text
+    const previous = items[index - 1]
+    const gap = item.x - end(previous)
+    const spaced =
+      gap > Math.max(1, item.size * 0.15) && !line.endsWith(' ') && !text.startsWith(' ')
+    return line + (spaced ? ' ' : '') + text
+  }, '')
+  return closeSpacedRuns(joined.replace(/\s+/g, ' ').trim())
 }
 
 function rowText(row: Row) {
@@ -261,11 +289,41 @@ function layoutRegion(items: TextItem[], depth: number): string[] {
   return lines
 }
 
+// Some PDFs draw list bullets as shapes, so no bullet character reaches the text. On a page
+// with no bullet characters at all, a line set in slightly from the left edge that starts a
+// new sentence is taken to start a bullet. Columns and sidebars sit much further in.
+function markDrawnBullets(lines: Row[], texts: string[]) {
+  if (texts.some((text) => BULLET_LINE.test(text))) return texts
+  const starts = lines.map((line) => Math.round(line.items[0].x))
+  const margin = Math.min(
+    ...starts.filter((start) => starts.filter((other) => Math.abs(other - start) <= 2).length >= 3),
+  )
+  if (!Number.isFinite(margin)) return texts
+
+  const indented = (index: number) => {
+    const indent = starts[index] - margin
+    return indent >= BULLET_INDENT.min && indent <= BULLET_INDENT.max
+  }
+  const marked = texts.map((text, index) => {
+    if (!indented(index) || !/^[\p{Lu}\d]/u.test(text)) return text
+    const continues =
+      index > 0 &&
+      indented(index - 1) &&
+      Math.abs(starts[index] - starts[index - 1]) <= 2 &&
+      !/[.!?]$/.test(texts[index - 1])
+    return continues ? text : `• ${text}`
+  })
+  return marked.filter((text, index) => text !== texts[index]).length >= 2 ? marked : texts
+}
+
 export function layoutPage(items: TextItem[]) {
   const visible = items.filter((item) => item.text.trim().length > 0)
   if (visible.length === 0) return []
 
   const lines = streamLines(visible)
-  if (inReadingOrder(lines)) return lines.map(rowText).filter(Boolean)
+  if (inReadingOrder(lines)) {
+    const kept = lines.filter((line) => rowText(line))
+    return markDrawnBullets(kept, kept.map(rowText))
+  }
   return layoutRegion(visible, 0).filter(Boolean)
 }
