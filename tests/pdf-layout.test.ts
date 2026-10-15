@@ -220,3 +220,41 @@ describe('bullets drawn as shapes', () => {
     assert.ok(!lines.some((line) => line.startsWith('•')), lines.join('\n'))
   })
 })
+
+describe('dates beside descriptions', () => {
+  const sidebar = [
+    item('Jane Doe', 14, 547, 14),
+    item('jane@example.com', 43, 520),
+    item('+44 7700 900123', 43, 505),
+    item('Skills: Python, SQL', 14, 480),
+  ]
+  const dated = (x: number) => [
+    item('Education', x, 760, 12),
+    item('2019 - 2023', x, 740),
+    item('PhD in Computer Science, University of Leeds', x + 90, 740),
+    item('2017 - 2019', x, 725),
+    item('MSc in Computer Science, University of York', x + 90, 725),
+    item('2014 - 2017', x, 710),
+    item('BSc in Mathematics, University of Hull', x + 90, 710),
+    item('2012 - 2014', x, 695),
+    item('A-levels in Maths, Physics and Chemistry', x + 90, 695),
+  ]
+
+  it('trusts a PDF that writes the sidebar and then the main column', () => {
+    const lines = layoutPage([...sidebar, ...dated(221)])
+    assert.equal(lines[0], 'Jane Doe')
+    assert.ok(
+      lines.includes('2019 - 2023 PhD in Computer Science, University of Leeds'),
+      lines.join('\n'),
+    )
+    assert.ok(lines.indexOf('Skills: Python, SQL') < lines.indexOf('Education'))
+  })
+
+  it('keeps each date with its description when reading by position', () => {
+    const lines = layoutPage(inRowOrder(dated(54)))
+    assert.ok(
+      lines.includes('2017 - 2019 MSc in Computer Science, University of York'),
+      lines.join('\n'),
+    )
+  })
+})

@@ -123,6 +123,10 @@ function inReadingOrder(lines: Row[]) {
   }
   if (jumps >= 3 && jumps / lines.length > MAX_JUMP_SHARE) return false
 
+  // Jumping back up the page means the PDF writes one column at a time, so a run of
+  // "date | description" rows inside a column is a table, not columns written across.
+  if (jumps > 0) return true
+
   const columnStarts: number[] = []
   for (const line of lines) {
     for (let index = 1; index < line.items.length; index += 1) {
@@ -216,6 +220,18 @@ function isColumnSplit(run: Row[], split: number) {
   const left = run.flatMap((row) => row.items.filter((item) => end(item) <= split))
   const right = run.flatMap((row) => row.items.filter((item) => item.x >= split))
   if (left.length === 0 || right.length === 0) return false
+
+  // Dates down the left with descriptions beside them are one column laid out as a table.
+  const leftRows = run.filter((row) => sides(row, split).left)
+  const datedRows = leftRows.filter((row) =>
+    DATE.test(
+      row.items
+        .filter((item) => end(item) <= split)
+        .map((item) => item.text)
+        .join(' '),
+    ),
+  )
+  if (datedRows.length >= leftRows.length * 0.6) return false
 
   const rightRows = run.filter((row) => sides(row, split).right)
   const sideBySide = run.filter((row) => {

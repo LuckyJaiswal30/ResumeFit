@@ -86,9 +86,17 @@ function decodeText(bytes: Uint8Array, utf16: 'utf-16le' | 'utf-16be' | null) {
   }
 }
 
+// Control and private-use characters are what icon fonts leave behind.
+function isInvisible(char: string) {
+  const code = char.codePointAt(0) ?? 0
+  if (char === '\n' || char === '\r' || char === '\t') return false
+  return code < 32 || code === 127 || (code >= 0xe000 && code <= 0xf8ff)
+}
+
 export function tidy(text: string) {
-  return text
-    .replaceAll('\u0000', '')
+  return [...text]
+    .filter((char) => !isInvisible(char))
+    .join('')
     .replace(/\r\n?/g, '\n')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')

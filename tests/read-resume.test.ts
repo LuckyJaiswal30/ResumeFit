@@ -478,3 +478,11 @@ describe('two resumes in one text', () => {
     assert.equal(looksLikeResume(twoHeadings).several, false)
   })
 })
+
+describe('icon fonts', () => {
+  it('drops the control and private-use characters they leave behind', async () => {
+    const icons = String.fromCharCode(0x05, 0xf0e0)
+    const { text: result } = await read('cv.txt', text(`${RESUME}\n${icons} portfolio`))
+    assert.ok(![...icons].some((icon) => result.includes(icon)))
+  })
+})

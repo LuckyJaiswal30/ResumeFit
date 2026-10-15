@@ -108,3 +108,25 @@ describe('comparing the two', () => {
     assert.equal(checkTitle(RESUME('Software Engineer'), 'Join our family today'), null)
   })
 })
+
+describe('a resume with no experience section', () => {
+  it('does not take a tool in a skills list for a job title', () => {
+    const resume = [
+      'PRIYA SHAH',
+      'priya.shah@example.com',
+      'EDUCATION',
+      'Bachelor of Engineering, University of Pune, 2018',
+      'TOOLS USED',
+      'Google Analytics',
+      'Google Keyword Planner',
+    ].join('\n')
+    assert.deepEqual(resumeTitles(resume), [])
+  })
+
+  it('still reads a headline under the name', () => {
+    const resume = ['Priya Shah', 'Marketing Executive', 'SKILLS', 'Event Planner software'].join(
+      '\n',
+    )
+    assert.deepEqual(resumeTitles(resume), ['Marketing Executive'])
+  })
+})

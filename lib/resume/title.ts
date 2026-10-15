@@ -12,6 +12,9 @@ export const SECTION_END =
 export const EXPERIENCE =
   /^\s*(?:work\s+|professional\s+|relevant\s+|employment\s+)?(?:experience|employment|work history|career history)\b/i
 export const BULLET = BULLET_LINE
+// Headings of sections that never hold job titles, for resumes with no Experience section.
+const OTHER_SECTION =
+  /^\s*(?:education|(?:technical\s+|personal\s+|key\s+|core\s+)?skills|tools(?:\s+used)?|technologies|projects|certifications?|courses|training|awards|achievements|references|languages|interests|hobbies|publications|objective|summary|profile|about me|extra[\s-]*cirr?icular(?:\s+activities)?)\s*:?\s*$/i
 const SEPARATORS = /\s*(?:,|\||—|–|\s-\s|@|\bat\b|\()\s*/i
 const LABEL = /^\s*(?:job\s+title|title|position|role)\s*[:-]\s*/i
 
@@ -77,8 +80,10 @@ export function resumeTitles(resume: string) {
   }
 
   const titles: string[] = []
+  let elsewhere = false
   for (const line of scope) {
-    if (!line || BULLET.test(line) || words(line).length > 16) continue
+    if (start < 0 && OTHER_SECTION.test(line)) elsewhere = true
+    if (elsewhere || !line || BULLET.test(line) || words(line).length > 16) continue
     const title = titleFrom(line)
     if (title && !titles.includes(title)) titles.push(title)
   }
